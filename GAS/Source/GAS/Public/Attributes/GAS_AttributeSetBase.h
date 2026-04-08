@@ -21,11 +21,13 @@ public:
 
 	UGAS_AttributeSetBase();
 
-
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;	
+	
 	/** Attribute set overrides */ 
 
 	/**	This function is meant to enforce things like "Health = Clamp(Health, 0, MaxHealth)" and NOT things like "trigger this extra thing if damage is applied, etc". */ 
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
 	/** Called just after any modification happens to an attribute. */
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
@@ -35,11 +37,23 @@ public:
 
 	/** Attribute set overrides END */
 
+	/** 
+	 * Meta attributes
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingDamage)
+	
+	/** 
+	 * Vital Attributes 
+	 * 
+	 */
+	
 	/** Current Health of the player.
 	* This variable is replicated.
 	* Capped by MaxHealth
 	*/
-	UPROPERTY(ReplicatedUsing = OnRep_Health, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(ReplicatedUsing = OnRep_Health, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, Health)
 
@@ -47,7 +61,7 @@ public:
 	 * Can be updated during runtime.
 	 * This variable is replicated.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, MaxHealth)
 
@@ -55,7 +69,7 @@ public:
 	 * Can be updated during runtime
 	 * This variable is replicated.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_HealthRegenRate, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(ReplicatedUsing = OnRep_HealthRegenRate, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData HealthRegenRate;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, HealthRegenRate)
 	
@@ -64,7 +78,7 @@ public:
 	* This variable is replicated.
 	* Capped by MaxMana
 	*/
-	UPROPERTY(ReplicatedUsing = OnRep_Mana, BlueprintReadOnly, Category = "Mana")
+	UPROPERTY(ReplicatedUsing = OnRep_Mana, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData Mana;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, Mana)
 
@@ -72,7 +86,7 @@ public:
 	 * Can be updated during runtime.
 	 * This variable is replicated.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_MaxMana, BlueprintReadOnly, Category = "Mana")
+	UPROPERTY(ReplicatedUsing = OnRep_MaxMana, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData MaxMana;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, MaxMana)
 
@@ -81,7 +95,7 @@ public:
 	* This variable is replicated.
 	* Capped by MaxStamina
 	*/
-	UPROPERTY(ReplicatedUsing = OnRep_Stamina, BlueprintReadOnly, Category = "Mana")
+	UPROPERTY(ReplicatedUsing = OnRep_Stamina, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData Stamina ;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, Stamina)
 
@@ -89,7 +103,7 @@ public:
 	 * Can be updated during runtime.
 	 * This variable is replicated.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_MaxStamina, BlueprintReadOnly, Category = "Mana")
+	UPROPERTY(ReplicatedUsing = OnRep_MaxStamina, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData MaxStamina;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, MaxStamina)
 
@@ -97,8 +111,68 @@ public:
 	 * Can be updated during runtime
 	 * This variable is replicated.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_StaminaRegenRate, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(ReplicatedUsing = OnRep_StaminaRegenRate, BlueprintReadOnly, Category = "Primary")
 	FGameplayAttributeData StaminaRegenRate;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, StaminaRegenRate)
 	
+	
+	/** 
+	 * Physical Attribute Set  
+	 */
+	
+	/* Modifies physical damage, stamina cost, stamina regen, **/
+	UPROPERTY(ReplicatedUsing = OnRep_Strength ,BlueprintReadOnly,Category = "Phyiscal")
+	FGameplayAttributeData Strength;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Strength)
+	
+	/* Modifies magical/spell/ability damage, mana costs, cooldown reduction, **/
+	UPROPERTY(ReplicatedUsing = OnRep_Intelligence ,BlueprintReadOnly,Category = "Phyiscal")
+	FGameplayAttributeData Intelligence;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Intelligence)
+	
+	/* Deal more damage from behind , reduce detection **/
+	UPROPERTY(ReplicatedUsing = OnRep_Stealth ,BlueprintReadOnly,Category = "Phyiscal")
+	FGameplayAttributeData Stealth;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Stealth)
+	
+protected:
+	
+	/* 
+	 * On Reps
+	 * **/
+	
+	// ====================== Primary / Vital Attributes ======================
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
+
+	UFUNCTION()
+	void OnRep_HealthRegenRate(const FGameplayAttributeData& OldHealthRegenRate) const;
+
+	UFUNCTION()
+	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
+
+	UFUNCTION()
+	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const;
+
+	UFUNCTION()
+	void OnRep_Stamina(const FGameplayAttributeData& OldStamina) const;
+
+	UFUNCTION()
+	void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) const;
+
+	UFUNCTION()
+	void OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate) const;
+
+	// ====================== Physical / Mental Attributes ======================
+	UFUNCTION()
+	void OnRep_Strength(const FGameplayAttributeData& OldStrength) const;
+
+	UFUNCTION()
+	void OnRep_Intelligence(const FGameplayAttributeData& OldIntelligence) const;
+
+	UFUNCTION()
+	void OnRep_Stealth(const FGameplayAttributeData& OldStealth) const;
 };
