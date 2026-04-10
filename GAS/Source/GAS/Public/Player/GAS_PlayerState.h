@@ -3,8 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
 #include "GAS_PlayerState.generated.h"
 
+class UGAS_AttributeSetBase;
 class UAbilitySystemComponent;
 
 UCLASS()
@@ -14,15 +16,39 @@ class GAS_API AGAS_PlayerState : public APlayerState, public IAbilitySystemInter
 
 	AGAS_PlayerState();
 
+protected:
+	
+	virtual void BeginPlay() override;	
+	
 public:
 
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
-private:
-
+protected:
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UGAS_AttributeSetBase> AttributeBase;
+	
+	///
+	/// Callbacks for attribute changes
+	//
+	
+	virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+	virtual void OnStaminaChanged(const FOnAttributeChangeData& Data);
+	virtual void OnManaChanged(const FOnAttributeChangeData& Data);
+	
+	///
+	/// Delegates for attribute changes
+	//
+	
+	FDelegateHandle HealthChangeDelegateHandle;
+	FDelegateHandle StaminaChangedDelegateHandle;
+	FDelegateHandle ManaChangedDelegateHandle;
+	
 	
 };
 

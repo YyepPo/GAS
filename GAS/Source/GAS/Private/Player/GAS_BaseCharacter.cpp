@@ -22,7 +22,6 @@ AGAS_BaseCharacter::AGAS_BaseCharacter()
 void AGAS_BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 UAbilitySystemComponent* AGAS_BaseCharacter::GetAbilitySystemComponent() const
