@@ -43,6 +43,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingDamage)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+	FGameplayAttributeData IncomingPenetration;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingPenetration)
 	
 	/** 
 	 * Vital Attributes 
@@ -134,6 +138,10 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Stealth ,BlueprintReadOnly,Category = "Phyiscal")
 	FGameplayAttributeData Stealth;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Stealth)
+
+private:
+
+	void HandleIncomingDamage(const float& IncomingDamageAmount);
 	
 protected:
 	
