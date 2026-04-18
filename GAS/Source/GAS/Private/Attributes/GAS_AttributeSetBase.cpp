@@ -12,7 +12,6 @@ void UGAS_AttributeSetBase::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Health,           COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, MaxHealth,        COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, HealthRegenRate,  COND_None, REPNOTIFY_Always);
@@ -110,6 +109,10 @@ void UGAS_AttributeSetBase::PostAttributeChange(const FGameplayAttribute& Attrib
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 }
+
+/// 
+/// On Reps
+/// 
 
 void UGAS_AttributeSetBase::OnRep_Health(const FGameplayAttributeData& OldHealth) const
 {
