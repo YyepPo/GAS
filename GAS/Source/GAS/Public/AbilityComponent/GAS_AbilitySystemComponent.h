@@ -7,6 +7,9 @@
 #include "GAS_AbilitySystemComponent.generated.h"
 
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FDeactivatePassiveAbility, const FGameplayTag& /*AbilityTag*/);
+
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAS_API UGAS_AbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -53,5 +56,11 @@ public:
 	FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	
+
+	///
+	///Delegates
+	///
 	
+	UPROPERTY(BlueprintAssignable)
+	FDeactivatePassiveAbility DeactivatePassiveAbility;
 };

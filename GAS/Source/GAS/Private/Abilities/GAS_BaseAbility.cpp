@@ -1,14 +1,33 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "Abilities/GAS_BaseAbility.h"
+#include "Attributes/GAS_AttributeSetBase.h"
 
-
-#include "Abilities/GAS_BaseAbility.h"
-
-float UGAS_BaseAbility::GetManaCost(float Level)
+float UGAS_BaseAbility::GetManaCost(float Level) const
 {
-	return 0;
+	float ManaCost = 0.f;
+	
+	if (const UGameplayEffect* ManaCostEffect = GetCostGameplayEffect())
+	{
+		for (FGameplayModifierInfo Modifier : ManaCostEffect->Modifiers)
+		{
+			if (Modifier.Attribute == UGAS_AttributeSetBase::GetManaAttribute())
+			{
+				Modifier.ModifierMagnitude.GetStaticMagnitudeIfPossible(Level,ManaCost);
+			}
+		}
+	}
+	
+
+	return ManaCost;
 }
 
-float UGAS_BaseAbility::GetCooldown(float Level)
+float UGAS_BaseAbility::GetCooldown(float Level) const 
 {
-	return 0;
+	float Cooldown = 0.f;
+	
+	if (const UGameplayEffect* CooldownEffect = GetCostGameplayEffect())
+	{
+		CooldownEffect->DurationMagnitude.GetStaticMagnitudeIfPossible(Level,Cooldown);
+	}
+	
+	return Cooldown;
 }
