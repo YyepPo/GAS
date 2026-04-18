@@ -12,6 +12,41 @@ GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+USTRUCT()
+struct FEffectProperties
+{
+	GENERATED_BODY()
+
+	FEffectProperties(){}
+
+	FGameplayEffectContextHandle EffectContextHandle;
+
+	UPROPERTY()
+	UAbilitySystemComponent* SourceASC = nullptr;
+
+	UPROPERTY()
+	AActor* SourceAvatarActor = nullptr;
+
+	UPROPERTY()
+	AController* SourceController = nullptr;
+
+	UPROPERTY()
+	ACharacter* SourceCharacter = nullptr;
+
+	UPROPERTY()
+	UAbilitySystemComponent* TargetASC = nullptr;
+
+	UPROPERTY()
+	AActor* TargetAvatarActor = nullptr;
+
+	UPROPERTY()
+	AController* TargetController = nullptr;
+
+	UPROPERTY()
+	ACharacter* TargetCharacter = nullptr;
+};
+
+
 UCLASS()
 class GAS_API UGAS_AttributeSetBase : public UAttributeSet
 {
@@ -40,13 +75,14 @@ public:
 	/** 
 	 * Meta attributes
 	 */
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingDamage)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
-	FGameplayAttributeData IncomingPenetration;
-	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingPenetration)
+	FGameplayAttributeData IncomingXp;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, IncomingXp)
 	
 	/** 
 	 * Vital Attributes 
@@ -141,7 +177,9 @@ public:
 
 private:
 
-	void HandleIncomingDamage(const float& IncomingDamageAmount);
+	void HandleIncomingDamage(const FEffectProperties& Props);
+	void SendXPEvent(const FEffectProperties& Props);
+	void HandleIncomingXP(const FEffectProperties& Props); 
 	
 protected:
 	

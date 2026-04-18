@@ -2,10 +2,15 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "GAS_GameplayTags.h"
+#include "AbilityComponent/GAS_FunctionLibrary.h"
+#include "GameFramework/Character.h"
+#include "Interface/CharacterInterface.h"
+#include "Interface/CombatInterface.h"
 
 UGAS_AttributeSetBase::UGAS_AttributeSetBase()
 {
-	
+
 }
 
 void UGAS_AttributeSetBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -92,18 +97,98 @@ void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		const float LocalIncomingDamage = GetIncomingDamage();
 		SetIncomingDamage(0);
-		HandleIncomingDamage(LocalIncomingDamage);
+		//HandleIncomingDamage(LocalIncomingDamage);
 	}
 
 }
 
-void UGAS_AttributeSetBase::HandleIncomingDamage(const float& IncomingDamageAmount)
+void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 {
-	UE_LOG(LogTemp,Warning,TEXT("Attribute Set: Damage: Incoming damage %f"),IncomingDamageAmount);
-
-	const float NewHealth = GetHealth() - IncomingDamageAmount;
-	SetHealth(FMath::Clamp(NewHealth,0,GetMaxHealth()));
+	const float LocalIncomingDamage = GetIncomingDamage();
+	SetIncomingDamage(0.f);
+	
+	if (LocalIncomingDamage > 0.f)
+	{
+		const float NewHealth = GetHealth() - LocalIncomingDamage;
+		SetHealth(FMath::Clamp(NewHealth,0.f,GetMaxHealth()));
+		
+		// Handle death & increase xp
+		const bool bIsDead = NewHealth <= 0.f;
+		if (bIsDead)
+		{
+			ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+			if (CombatInterface)
+			{
+				CombatInterface->Die(FVector::Zero());
+			}
+			SendXPEvent(Props);
+		}
+	}
 }
+
+void UGAS_AttributeSetBase::SendXPEvent(const FEffectProperties& Props)
+{
+	if (Props.TargetAvatarActor->Implements<UCombatInterface>() == false)
+	{
+		return;
+	}	
+	
+	const int32 TargetLevel = ICombatInterface::Execute_GetPlayerLevel(Props.TargetAvatarActor);
+	const ECharacterClass TargetClass = ICombatInterface::Execute_GetCharacterClass(Props.TargetAvatarActor);
+	const float XP = UGAS_FunctionLibrary::GetXPRewardForClassAndLevel(Props.TargetAvatarActor,TargetClass,TargetLevel);
+	
+	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
+	FGameplayEventData Payload;
+	Payload.EventTag =  GameplayTags.Attributes_Meta_IncomingXP;
+	Payload.EventMagnitude = XP;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter,
+		GameplayTags.Attributes_Meta_IncomingXP,
+		Payload);
+}
+
+void UGAS_AttributeSetBase::HandleIncomingXP(const FEffectProperties& Props)
+{
+	const float LocalIncomingXP = GetIncomingXp();
+	SetIncomingXp(0.f);
+	
+	if (LocalIncomingXP <= 0.f)
+	{
+		return;
+	}
+	
+	if (Props.SourceCharacter->Implements<UCharacterInterface>() && Props.SourceCharacter->Implements<UCombatInterface>())
+	{
+		const int32 CurrentLevel = ICombatInterface::Execute_GetPlayerLevel(Props.SourceCharacter);
+		const int32 CurrentXP = ICharacterInterface::Execute_GetXP(Props.SourceCharacter);
+
+		const int32 NewLevel = ICharacterInterface::Execute_FindLevelForXP(Props.SourceCharacter, CurrentXP + LocalIncomingXP);
+		const int32 NumLevelUps = NewLevel - CurrentLevel;
+		if (NumLevelUps > 0)
+		{
+			ICharacterInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NumLevelUps);
+
+			int32 AttributePointsReward = 0;
+			int32 SpellPointsReward = 0;
+
+			for (int32 i = 0; i < NumLevelUps; ++i)
+			{
+				SpellPointsReward += ICharacterInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel + i);
+				AttributePointsReward += ICharacterInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel + i);
+			}
+			
+			ICharacterInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
+			ICharacterInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
+	
+			/*bTopOffHealth = true;
+			bTopOffMana = true;*/
+				
+			ICharacterInterface::Execute_LevelUp(Props.SourceCharacter);
+		}
+			
+		ICharacterInterface::Execute_AddToXP(Props.SourceCharacter, LocalIncomingXP);
+	}
+}
+
 
 void UGAS_AttributeSetBase::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
