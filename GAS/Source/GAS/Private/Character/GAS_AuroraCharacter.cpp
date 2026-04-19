@@ -1,9 +1,6 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Character/GAS_AuroraCharacter.h"
-
+﻿#include "Character/GAS_AuroraCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
 
 
@@ -63,57 +60,71 @@ void AGAS_AuroraCharacter::InitAbilityInfo()
 
 int32 AGAS_AuroraCharacter::FindLevelForXP_Implementation(int32 InXP) const
 {
-	return IPlayerInterface::FindLevelForXP_Implementation(InXP);
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	return GASPlayerState->LevelUpConfig->FindLevelForXP(InXP);
 }
 
 int32 AGAS_AuroraCharacter::GetXP_Implementation() const
 {
-	return IPlayerInterface::GetXP_Implementation();
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	return GASPlayerState->GetXP();
 }
 
 int32 AGAS_AuroraCharacter::GetAttributePointsReward_Implementation(int32 Level) const
 {
-	return IPlayerInterface::GetAttributePointsReward_Implementation(Level);
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	return GASPlayerState->LevelUpConfig->LevelUpInformation[Level].AttributePointAward;
 }
 
 int32 AGAS_AuroraCharacter::GetSpellPointsReward_Implementation(int32 Level) const
 {
-	return IPlayerInterface::GetSpellPointsReward_Implementation(Level);
+	return 0;
 }
 
 void AGAS_AuroraCharacter::AddToXP_Implementation(int32 InXP)
 {
-	IPlayerInterface::AddToXP_Implementation(InXP);
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	GASPlayerState->AddToXP(InXP);
 }
 
 void AGAS_AuroraCharacter::AddToPlayerLevel_Implementation(int32 InPlayerLevel)
 {
-	IPlayerInterface::AddToPlayerLevel_Implementation(InPlayerLevel);
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	GASPlayerState->AddToLevel(InPlayerLevel);
 }
 
 void AGAS_AuroraCharacter::AddToAttributePoints_Implementation(int32 InAttributePoints)
 {
-	IPlayerInterface::AddToAttributePoints_Implementation(InAttributePoints);
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	GASPlayerState->AddToAttributePoints(InAttributePoints);
 }
 
 int32 AGAS_AuroraCharacter::GetAttributePoints_Implementation() const
 {
-	return IPlayerInterface::GetAttributePoints_Implementation();
+	AGAS_PlayerState* GASPlayerState = GetController()->GetPlayerState<AGAS_PlayerState>();
+	check(GASPlayerState);
+	return GASPlayerState->GetAttributePoints();
 }
 
 void AGAS_AuroraCharacter::AddToSpellPoints_Implementation(int32 InSpellPoints)
 {
-	IPlayerInterface::AddToSpellPoints_Implementation(InSpellPoints);
+	
 }
 
 int32 AGAS_AuroraCharacter::GetSpellPoints_Implementation() const
 {
-	return IPlayerInterface::GetSpellPoints_Implementation();
+	return 0;
 }
 
 void AGAS_AuroraCharacter::LevelUp_Implementation()
 {
-	IPlayerInterface::LevelUp_Implementation();
+	//Spawn level up niagara effect	
 }
 
 /* IPlayerInterface Functions END **/
