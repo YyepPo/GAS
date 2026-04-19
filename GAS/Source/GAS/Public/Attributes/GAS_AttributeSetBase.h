@@ -181,7 +181,7 @@ private:
 	void SendXPEvent(const FEffectProperties& Props);
 	void HandleIncomingXP(const FEffectProperties& Props); 
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const; 
-	FGameplayTag CalculateHitDirection(const FEffectProperties& Props);
+
 protected:
 	
 	/* 

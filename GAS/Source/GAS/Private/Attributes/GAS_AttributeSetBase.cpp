@@ -3,6 +3,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "GAS_GameplayTags.h"
+#include "Abilities/GAS_AbilitySystemLibrary.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "Interface/CharacterInterface.h"
@@ -129,7 +130,7 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 		{
 			if (Props.TargetCharacter->Implements<UCombatInterface>())
 			{
-				FGameplayTag HitReactTag =	CalculateHitDirection(Props);
+				FGameplayTag HitReactTag = UGAS_AbilitySystemLibrary::CalculateHitDirection(Props.SourceCharacter,Props.TargetAvatarActor);
 				
 				FGameplayTagContainer TagContainer;
 				TagContainer.AddTag(HitReactTag);
@@ -233,43 +234,6 @@ void UGAS_AttributeSetBase::SetEffectProperties(const FGameplayEffectModCallback
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
-}
-
-FGameplayTag UGAS_AttributeSetBase::CalculateHitDirection(const FEffectProperties& Props)
-{
-	if (!Props.SourceCharacter || !Props.TargetCharacter)
-	{
-		return FGAS_GameplayTags::Get().Effects_HitReact_Front;
-	}
-	
-	const FVector DirectionToAttacker = (Props.SourceCharacter->GetActorLocation() 
-									   - Props.TargetCharacter->GetActorLocation()).GetSafeNormal2D();
-
-	const FVector VictimForward = Props.TargetCharacter->GetActorForwardVector();
-	const float Dot = FVector::DotProduct(VictimForward, DirectionToAttacker);
-	const float Angle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(Dot, -1.0f, 1.0f)));
-	const float CrossZ = FVector::CrossProduct(VictimForward, DirectionToAttacker).Z;
-
-	FGameplayTag HitDirectionTag;
-
-	if (FMath::Abs(Angle) <= 45.0f)
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Front;
-	}
-	else if (FMath::Abs(Angle) >= 135.0f)
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Back;
-	}
-	else if (CrossZ > 0.0f)
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Right;
-	}
-	else
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Left;
-	}
-	
-	return HitDirectionTag;
 }
 
 
