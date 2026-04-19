@@ -18,7 +18,7 @@ public class GAS : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate", "GameplayAbilities"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
