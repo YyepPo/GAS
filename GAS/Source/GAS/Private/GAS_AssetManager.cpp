@@ -17,6 +17,5 @@ void UGAS_AssetManager::StartInitialLoading()
 {
 	Super::StartInitialLoading();
 	FGAS_GameplayTags::InitializeNativeGameplayTags();
-	
 }
 

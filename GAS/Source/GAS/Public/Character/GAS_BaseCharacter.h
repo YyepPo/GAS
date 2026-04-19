@@ -7,6 +7,7 @@
 #include "GAS_BaseCharacter.generated.h"
 
 class UAbilitySystemComponent;
+class UAttributeSet;
 
 UCLASS()
 class GAS_API AGAS_BaseCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -21,22 +22,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/** IAbilitySystemInterface functions */
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	/** IAbilitySystemInterface END */
-	
-	/** Called from server, initializes AbilitySystemComponent on the server */
-	virtual void PossessedBy(AController* NewController) override;
-
-	/** Called on client, initializes AbilitySystemComponent on the client */
-	virtual void OnRep_PlayerState() override;
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** ICombatInterface Functions */
 	virtual UAnimMontage* GetHitReactMontage_Implementation(const FGameplayTag& HitReactionTag) override;
@@ -53,8 +41,13 @@ public:
 	
 	void SetCharacterClass(ECharacterClass InCharacterClass) {CharacterClass = InCharacterClass;}
 
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	UAttributeSet* GetAttributeSet() const {return AttributeSet;}
 	
 protected:
+
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
 	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	bool bIsDead = false;
@@ -78,8 +71,7 @@ protected:
 	
 private:
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GAS", meta=(AllowPrivateAccess="true"))
-	UAbilitySystemComponent* AbilitySystemComponent;
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class")
 	ECharacterClass CharacterClass;

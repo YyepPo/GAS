@@ -27,50 +27,11 @@ void AGAS_BaseCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
-UAbilitySystemComponent* AGAS_BaseCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
-}
-
 // Called every frame
 void AGAS_BaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-// Called to bind functionality to input
-void AGAS_BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
-void AGAS_BaseCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	// Initialize AbilitySystemComponent on the server
-	AGAS_PlayerState* PS = GetPlayerState<AGAS_PlayerState>();
-	if (PS)
-	{
-		AbilitySystemComponent = PS->GetAbilitySystemComponent();
-		AbilitySystemComponent->InitAbilityActorInfo(PS,this);
-	}
-}
-
-void AGAS_BaseCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	// Initialize AbilitySystemComponent on the client
-	AGAS_PlayerState* PS = GetPlayerState<AGAS_PlayerState>();
-	if (PS)
-	{
-		AbilitySystemComponent = PS->GetAbilitySystemComponent();
-		// Init ASC Actor Info for clients. Server will init its ASC when it possesses a new Actor.
-		AbilitySystemComponent->InitAbilityActorInfo(PS,this);
-	}
-}
-
 
 /// 
 // ICombatInterface Functions

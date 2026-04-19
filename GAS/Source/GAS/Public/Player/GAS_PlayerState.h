@@ -22,8 +22,11 @@ protected:
 	
 public:
 
-	// IAbilitySystemInterface
+	/** IAbilitySystemInterface function */
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	/** IAbilitySystemInterface END */
+	
+	UAttributeSet* GetAttributeSet() const {return AttributeBase;} 
 	
 protected:
 	
@@ -31,7 +34,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY()
-	TObjectPtr<UGAS_AttributeSetBase> AttributeBase;
+	TObjectPtr<UAttributeSet> AttributeBase;
 	
 	///
 	/// Callbacks for attribute changes
