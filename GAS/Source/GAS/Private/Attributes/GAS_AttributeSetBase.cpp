@@ -73,7 +73,10 @@ void UGAS_AttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribu
 void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
-
+	
+	FEffectProperties EffectProperties;
+	SetEffectProperties(Data,EffectProperties);
+	
 	// Clamp Health
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
@@ -95,9 +98,7 @@ void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 	// Handle incoming damage
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		const float LocalIncomingDamage = GetIncomingDamage();
-		SetIncomingDamage(0);
-		//HandleIncomingDamage(LocalIncomingDamage);
+		HandleIncomingDamage(EffectProperties);
 	}
 
 }
@@ -122,6 +123,19 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				CombatInterface->Die(FVector::Zero());
 			}
 			SendXPEvent(Props);
+		}
+		// Handle hit react
+		else
+		{
+			if (Props.TargetCharacter->Implements<UCombatInterface>())
+			{
+				FGameplayTag HitReactTag =	CalculateHitDirection(Props);
+				
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(HitReactTag);
+				
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
 		}
 	}
 }
@@ -187,6 +201,75 @@ void UGAS_AttributeSetBase::HandleIncomingXP(const FEffectProperties& Props)
 			
 		ICharacterInterface::Execute_AddToXP(Props.SourceCharacter, LocalIncomingXP);
 	}
+}
+
+void UGAS_AttributeSetBase::SetEffectProperties(const FGameplayEffectModCallbackData& Data,
+	FEffectProperties& Props) const
+{
+	Props.EffectContextHandle = Data.EffectSpec.GetContext();
+	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
+
+	if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
+	{
+		Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
+		Props.SourceController = Props.SourceASC->AbilityActorInfo->PlayerController.Get();
+		if (Props.SourceController == nullptr && Props.SourceAvatarActor != nullptr)
+		{
+			if (const APawn* Pawn = Cast<APawn>(Props.SourceAvatarActor))
+			{
+				Props.SourceController = Pawn->GetController();
+			}
+		}
+		if (Props.SourceController)
+		{
+			Props.SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
+		}
+	}
+
+	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+	{
+		Props.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+		Props.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
+		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
+		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
+	}
+}
+
+FGameplayTag UGAS_AttributeSetBase::CalculateHitDirection(const FEffectProperties& Props)
+{
+	if (!Props.SourceCharacter || !Props.TargetCharacter)
+	{
+		return FGAS_GameplayTags::Get().Effects_HitReact_Front;
+	}
+	
+	const FVector DirectionToAttacker = (Props.SourceCharacter->GetActorLocation() 
+									   - Props.TargetCharacter->GetActorLocation()).GetSafeNormal2D();
+
+	const FVector VictimForward = Props.TargetCharacter->GetActorForwardVector();
+	const float Dot = FVector::DotProduct(VictimForward, DirectionToAttacker);
+	const float Angle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(Dot, -1.0f, 1.0f)));
+	const float CrossZ = FVector::CrossProduct(VictimForward, DirectionToAttacker).Z;
+
+	FGameplayTag HitDirectionTag;
+
+	if (FMath::Abs(Angle) <= 45.0f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Front;
+	}
+	else if (FMath::Abs(Angle) >= 135.0f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Back;
+	}
+	else if (CrossZ > 0.0f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Right;
+	}
+	else
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Left;
+	}
+	
+	return HitDirectionTag;
 }
 
 

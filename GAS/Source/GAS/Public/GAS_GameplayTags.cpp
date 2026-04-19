@@ -240,11 +240,26 @@ void FGAS_GameplayTags::InitializeNativeGameplayTags()
 	 * Effects
 	 */
 
-	GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("Effects.HitReact"),
-		FString("Tag granted when Hit Reacting")
+	GameplayTags.Effects_HitReact_Front = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Effects.HitReact.Front"),
+		FString("Tag granted when Hit Reacting Front")
+		);
+	
+	GameplayTags.Effects_HitReact_Front = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Effects.HitReact.Back"),
+		FString("Tag granted when Hit Reacting Back")
 		);
 
+	GameplayTags.Effects_HitReact_Front = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Effects.HitReact.Right"),
+		FString("Tag granted when Hit Reacting Right")
+		);
+	
+	GameplayTags.Effects_HitReact_Front = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Effects.HitReact.Left"),
+		FString("Tag granted when Hit Left")
+		);
+	
 	/*
 	 * Abilities
 	 */

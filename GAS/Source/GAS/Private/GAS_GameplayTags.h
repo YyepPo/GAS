@@ -63,7 +63,7 @@ struct FGAS_GameplayTags
 	FGameplayTag Abilities_Summon;
 	
 	FGameplayTag Abilities_HitReact;
-
+	
 	FGameplayTag Abilities_Status_Locked;
 	FGameplayTag Abilities_Status_Eligible;
 	FGameplayTag Abilities_Status_Unlocked;
@@ -98,7 +98,10 @@ struct FGAS_GameplayTags
 	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistances;
 	TMap<FGameplayTag, FGameplayTag> DamageTypesToDebuffs;
 
-	FGameplayTag Effects_HitReact;
+	FGameplayTag Effects_HitReact_Front;
+	FGameplayTag Effects_HitReact_Back;
+	FGameplayTag Effects_HitReact_Right;
+	FGameplayTag Effects_HitReact_Left;
 
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;
