@@ -134,21 +134,23 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 
 void AGAS_BaseCharacter::ApplyDefaultAttributes() const
 {
-	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
-	//ApplyGameplayEffectToSelf(DefaultSecondaryAttributeClass,1);
+	ApplyGameplayEffectToSelf(DefaultPrimaryAttributeClass,1);
+	ApplyGameplayEffectToSelf(DefaultSecondaryAttributeClass,1);
 	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
 }
 
 void AGAS_BaseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const
 {
+	if (GetAbilitySystemComponent() == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("GAS_BaseCharacter::ApplyGameplayEffectToSelf: GetAbilitySystemComponent() is null"));
+		return;
+	}
+	
 	check(AttributeClass);
-	check(IsValid(GetAbilitySystemComponent()));
 
 	FGameplayEffectContextHandle ContextHandler = GetAbilitySystemComponent()->MakeEffectContext();
-	ContextHandler.AddSourceObject(this);
-	FGameplayEffectSpecHandle EffectSpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(AttributeClass,Level,ContextHandler);
-	if (EffectSpecHandle.IsValid())
-	{
-		GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*EffectSpecHandle.Data.Get(),GetAbilitySystemComponent());
-	}
+	ContextHandler.AddSourceObject(this);	
+	const FGameplayEffectSpecHandle EffectSpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(AttributeClass,Level,ContextHandler);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*EffectSpecHandle.Data.Get(),GetAbilitySystemComponent());
 }

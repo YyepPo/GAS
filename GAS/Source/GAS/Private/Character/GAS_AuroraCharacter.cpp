@@ -42,7 +42,7 @@ void AGAS_AuroraCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void AGAS_AuroraCharacter::InitAbilityInfo()
 {
-	AGAS_PlayerState* PS = GetPlayerState<AGAS_PlayerState>();
+	AGAS_PlayerState* PS = GetController()->GetPlayerState<AGAS_PlayerState>();
 	if (PS == nullptr)
 	{
 		return;
