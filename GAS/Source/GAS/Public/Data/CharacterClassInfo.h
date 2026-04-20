@@ -4,6 +4,8 @@
 #include "ScalableFloat.h"
 #include "CharacterClassInfo.generated.h" 
 
+class UGameplayEffect;
+class UGameplayAbility;
 
 UENUM(BlueprintType)
 enum class ECharacterClass : uint8
@@ -28,7 +30,7 @@ struct FCharacterClassDefaultInfo
 };
 
 UCLASS()
-class AURA_API UCharacterClassInfo : public UDataAsset
+class GAS_API UCharacterClassInfo : public UDataAsset
 {
 	GENERATED_BODY()
 public:

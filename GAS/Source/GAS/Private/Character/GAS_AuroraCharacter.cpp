@@ -1,5 +1,6 @@
 ﻿#include "Character/GAS_AuroraCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
 
@@ -16,11 +17,6 @@ void AGAS_AuroraCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-UAbilitySystemComponent* AGAS_AuroraCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
 }
 
 void AGAS_AuroraCharacter::PossessedBy(AController* NewController)

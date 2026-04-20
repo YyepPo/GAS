@@ -14,7 +14,7 @@ void UGAS_PassiveAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UGAS_AbilitySystemComponent* AbilitySystemComponent = Cast<UGAS_AbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->DeactivatePassiveAbility.AddUObject(this,&UGAS_PassiveAbility::ReceiveDeactivate);
+		//AbilitySystemComponent->DeactivatePassiveAbility.AddUObject(this,&UGAS_PassiveAbility::ReceiveDeactivate);
 	}
 }
 

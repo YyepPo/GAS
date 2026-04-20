@@ -2,12 +2,14 @@
 
 
 #include "Public/Character/GAS_BaseCharacter.h"
-
-#include "AbilitySystemComponent.h"
+#include "GameFramework/Character.h"
 #include "GAS_GameplayTags.h"
-#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "AbilitySystemInterface.h"
 #include "Public/Player/GAS_PlayerState.h"
+#include "Components/CapsuleComponent.h"
+
+class UAbilitySystemComponent;
 
 
 // Sets default values
@@ -25,6 +27,11 @@ AGAS_BaseCharacter::AGAS_BaseCharacter()
 void AGAS_BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+UAbilitySystemComponent* AGAS_BaseCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 // Called every frame
@@ -84,14 +91,14 @@ void AGAS_BaseCharacter::Die(const FVector& DeathImpulse)
 		UE_LOG(LogTemp,Warning,TEXT("AGAS_BaseCharacter: Die: Death sound not selected"));
 	}
 	
-	USkeletalMeshComponent* Mesh =	GetMesh();
-	if (Mesh)
+	USkeletalMeshComponent* BodyMesh =	GetMesh();
+	if (BodyMesh)
 	{
-		Mesh->SetSimulatePhysics(true);
-		Mesh->SetEnableGravity(true);
-		Mesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		Mesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		Mesh->AddImpulse(DeathImpulse, NAME_None, true);	
+		BodyMesh->SetSimulatePhysics(true);
+		BodyMesh->SetEnableGravity(true);
+		BodyMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		BodyMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		BodyMesh->AddImpulse(DeathImpulse, NAME_None, true);	
 	}
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

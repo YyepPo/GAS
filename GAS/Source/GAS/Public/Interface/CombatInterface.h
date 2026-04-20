@@ -5,6 +5,8 @@
 #include "CombatInterface.generated.h"
 
 struct FGameplayTag;
+class UAbilitySystemComponent;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadActor);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnASCRegistered, UAbilitySystemComponent*)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDamageSignature, float /*DamageAmount*/);
@@ -23,10 +25,10 @@ class GAS_API ICombatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	int32 GetPlayerLevel() ;
 	
-	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	UAnimMontage* GetHitReactMontage(const FGameplayTag& HitReactionTag);
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

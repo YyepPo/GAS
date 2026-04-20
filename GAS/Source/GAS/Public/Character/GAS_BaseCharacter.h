@@ -22,6 +22,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/** IAbilitySystemInterface functions */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	/** IAbilitySystemInterface END */
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -68,12 +72,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	UAnimMontage* RightHitReactMontage;
 	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GAS", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 private:
 	
-
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class")
+	UPROPERTY(EditAnywhere, Category = "Character Class")
 	ECharacterClass CharacterClass;
 
 };

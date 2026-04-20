@@ -1,14 +1,17 @@
-﻿#pragma once
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Coreminimal.h"
+#pragma once
+
+#include "CoreMinimal.h"
 #include "AbilitySystemGlobals.h"
-#inclide "GAS_AbilitySystemGlobals.generated.h"
-
+#include "GAS_AbilitySystemGlobals.generated.h"
 UCLASS()
-class GAS_API GAS_AbilitySystemGlobals : public UAbilitySystemGlobals
+class GAS_API UGAS_AbilitySystemGlobals : public UAbilitySystemGlobals
 {
-	
 	GENERATED_BODY()
+
+public:
+
 	virtual FGameplayEffectContext* AllocGameplayEffectContext() const override;
 	
 };

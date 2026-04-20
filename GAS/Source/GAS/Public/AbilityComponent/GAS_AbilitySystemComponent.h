@@ -61,6 +61,6 @@ public:
 	///Delegates
 	///
 	
-	UPROPERTY(BlueprintAssignable)
-	FDeactivatePassiveAbility DeactivatePassiveAbility;
+	//UPROPERTY(BlueprintAssignable)
+	//FDeactivatePassiveAbility DeactivatePassiveAbility;
 };

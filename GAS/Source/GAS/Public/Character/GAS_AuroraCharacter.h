@@ -8,7 +8,7 @@
 #include "GAS_AuroraCharacter.generated.h"
 
 UCLASS()
-class GAS_API AGAS_AuroraCharacter : public AGAS_BaseCharacter, public IAbilitySystemInterface, public IPlayerInterface
+class GAS_API AGAS_AuroraCharacter : public AGAS_BaseCharacter, public IPlayerInterface
 {
 	GENERATED_BODY()
 
@@ -21,10 +21,6 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-
-	/** IAbilitySystemInterface functions */
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	/** IAbilitySystemInterface END */
 	
 	/** Called from server, initializes AbilitySystemComponent on the server */
 	virtual void PossessedBy(AController* NewController) override;
@@ -54,9 +50,5 @@ public:
 	
 private:
 	
-	void InitAbilityInfo();
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GAS", meta=(AllowPrivateAccess="true"))
-	UAbilitySystemComponent* AbilitySystemComponent;
-	
+	void InitAbilityInfo();	
 };
