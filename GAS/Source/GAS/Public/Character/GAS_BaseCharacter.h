@@ -6,6 +6,7 @@
 #include "Interface/CombatInterface.h"
 #include "GAS_BaseCharacter.generated.h"
 
+class UGameplayEffect;
 class UAbilitySystemComponent;
 class UAttributeSet;
 
@@ -58,6 +59,17 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	USoundBase* DeathSound;
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
+	TSubclassOf<UGameplayEffect> DefaultPrimaryAttributeClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
+	TSubclassOf<UGameplayEffect> DefaultSecondaryAttributeClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
+	TSubclassOf<UGameplayEffect> DefaultVitalAttributeClass;
+
+	void ApplyDefaultAttributes() const;
+	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;
 	
 	///
 	// Hit react montages ,4 sides

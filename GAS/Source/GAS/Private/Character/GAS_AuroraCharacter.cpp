@@ -24,6 +24,7 @@ void AGAS_AuroraCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	InitAbilityInfo();
+	ApplyDefaultAttributes();
 }
 
 void AGAS_AuroraCharacter::OnRep_PlayerState()

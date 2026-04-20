@@ -2,15 +2,15 @@
 
 
 #include "Public/Character/GAS_BaseCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "GAS_GameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystemInterface.h"
 #include "Public/Player/GAS_PlayerState.h"
 #include "Components/CapsuleComponent.h"
-
-class UAbilitySystemComponent;
-
+#include "GameplayEffect.h"
 
 // Sets default values
 AGAS_BaseCharacter::AGAS_BaseCharacter()
@@ -130,4 +130,25 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 
 /// 
 // ICombatInterface Functions END
-/// 
+///
+
+void AGAS_BaseCharacter::ApplyDefaultAttributes() const
+{
+	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
+	//ApplyGameplayEffectToSelf(DefaultSecondaryAttributeClass,1);
+	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
+}
+
+void AGAS_BaseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const
+{
+	check(AttributeClass);
+	check(IsValid(GetAbilitySystemComponent()));
+
+	FGameplayEffectContextHandle ContextHandler = GetAbilitySystemComponent()->MakeEffectContext();
+	ContextHandler.AddSourceObject(this);
+	FGameplayEffectSpecHandle EffectSpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(AttributeClass,Level,ContextHandler);
+	if (EffectSpecHandle.IsValid())
+	{
+		GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*EffectSpecHandle.Data.Get(),GetAbilitySystemComponent());
+	}
+}
