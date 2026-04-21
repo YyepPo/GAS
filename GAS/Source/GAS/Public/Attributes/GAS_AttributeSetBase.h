@@ -88,6 +88,18 @@ public:
 	 * Vital Attributes 
 	 * 
 	 */
+
+	UPROPERTY(BlueprintReadOnly, Category = "Primary")
+	FGameplayAttributeData Armor;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, Armor)
+
+	UPROPERTY(BlueprintReadOnly, Category = "Secondary Attributes")
+	FGameplayAttributeData CriticalHitChance;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, CriticalHitChance);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Secondary Attributes")
+	FGameplayAttributeData CriticalHitDamage;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, CriticalHitDamage);
 	
 	/** Current Health of the player.
 	* This variable is replicated.

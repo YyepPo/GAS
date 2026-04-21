@@ -1,6 +1,8 @@
 ﻿#include "Character/GAS_AuroraCharacter.h"
 #include "AbilitySystemComponent.h"
-#include "AbilityComponent/GAS_AbilitySystemComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "GASCharacter.h"
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
 
@@ -19,6 +21,54 @@ void AGAS_AuroraCharacter::BeginPlay()
 	
 }
 
+void AGAS_AuroraCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+	// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+		
+		//Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGAS_AuroraCharacter::Move);
+
+		//Looking
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGAS_AuroraCharacter::Look);
+	}
+}
+
+void AGAS_AuroraCharacter::Move(const FInputActionValue& Value)
+{
+	const FVector2D InputAxisVector = Value.Get<FVector2D>();
+
+	// Use controller yaw for movement direction (camera-relative movement)
+	const FRotator Rotation = GetControlRotation();
+	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	AddMovementInput(ForwardDirection, InputAxisVector.Y);
+	AddMovementInput(RightDirection,   InputAxisVector.X);
+}
+
+void AGAS_AuroraCharacter::Look(const FInputActionValue& Value)
+{
+	const FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	// Horizontal — orbit camera around character
+	AddControllerYawInput(LookAxisVector.X);
+	
+//	// Vertical — pitch camera up/down (clamped by SpringArm or CameraManager)
+	AddControllerPitchInput(LookAxisVector.Y); 
+}
+
 void AGAS_AuroraCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -32,12 +82,6 @@ void AGAS_AuroraCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitAbilityInfo();
-}
-
-// Called to bind functionality to input
-void AGAS_AuroraCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 void AGAS_AuroraCharacter::InitAbilityInfo()

@@ -55,8 +55,9 @@ public:
 	
 	FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
-	
 
+	
+	
 	///
 	///Delegates
 	///

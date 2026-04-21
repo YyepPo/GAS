@@ -3,6 +3,65 @@
 #include "GameplayEffectTypes.h"
 #include "GAS_AbilityTypes.generated.h"
 
+class UGameplayEffect;
+
+USTRUCT(BlueprintType)
+struct FDamageEffectParams
+{
+    GENERATED_BODY()
+
+    FDamageEffectParams(){}
+
+    UPROPERTY(BlueprintReadWrite)
+    TObjectPtr<UObject> WorldContextObject = nullptr;
+
+    UPROPERTY(BlueprintReadWrite)
+    TSubclassOf<UGameplayEffect> DamageGameplayEffectClass = nullptr;
+
+    UPROPERTY(BlueprintReadWrite)
+    TObjectPtr<UAbilitySystemComponent> SourceAbilitySystemComponent;
+
+    UPROPERTY(BlueprintReadWrite)
+    TObjectPtr<UAbilitySystemComponent> TargetAbilitySystemComponent;
+
+    UPROPERTY(BlueprintReadWrite)
+    float BaseDamage = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    float AbilityLevel = 1.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    FGameplayTag DamageType = FGameplayTag();
+
+    UPROPERTY(BlueprintReadWrite)
+    float DeathImpulseMagnitude = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    FVector DeathImpulse = FVector::ZeroVector;
+
+    UPROPERTY(BlueprintReadWrite)
+    float KnockbackForceMagnitude = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    float KnockbackChance = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    FVector KnockbackForce = FVector::ZeroVector;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool bIsRadialDamage = false;
+
+    UPROPERTY(BlueprintReadWrite)
+    float RadialDamageInnerRadius = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    float RadialDamageOuterRadius = 0.f;
+
+    UPROPERTY(BlueprintReadWrite)
+    FVector RadialDamageOrigin = FVector::ZeroVector;
+	
+};
+
 
 USTRUCT(BlueprintType)
 struct GAS_API FGAS_GameplayEffectContext : public FGameplayEffectContext

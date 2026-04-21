@@ -60,6 +60,9 @@ void AGASPlayerController::SetupInputComponent()
 	}
 }
 
+
+
+
 bool AGASPlayerController::ShouldUseTouchControls() const
 {
 	// are we on a mobile platform? Should we force touch?

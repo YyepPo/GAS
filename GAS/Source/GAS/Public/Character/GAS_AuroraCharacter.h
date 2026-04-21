@@ -44,6 +44,26 @@ protected:
 	virtual void LevelUp_Implementation() override;
 
 	/* IPlayerInterface Functions  END **/
+
+	/** MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputMappingContext* DefaultMappingContext;
+
+	/** Move Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveAction;
+
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* LookAction;
+
+	/** Called for movement input */
+	UFUNCTION()
+	void Move(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	UFUNCTION()
+	void Look(const FInputActionValue& Value);
 	
 public:
 
@@ -51,5 +71,7 @@ public:
 	
 private:
 	
-	void InitAbilityInfo();	
+	void InitAbilityInfo();
+
+	
 };

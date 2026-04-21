@@ -1,9 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "AbilityComponent/GAS_AbilitySystemComponent.h"
-
+﻿#include "AbilityComponent/GAS_AbilitySystemComponent.h"
+#include "GAS_GameplayTags.h"
+#include "Abilities/GAS_AbilitySystemLibrary.h"
 #include "Abilities/GAS_BaseAbility.h"
+#include "Data/GAS_AbilityTypes.h"
 
 // Sets default values for this component's properties
 UGAS_AbilitySystemComponent::UGAS_AbilitySystemComponent()
@@ -171,4 +170,3 @@ FGameplayTag UGAS_AbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbi
 	}
 	return FGameplayTag();
 }
-
