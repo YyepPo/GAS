@@ -1,4 +1,4 @@
-﻿#include "Public/Attributes/GAS_AttributeSetBase.h"
+#include "Public/Attributes/GAS_AttributeSetBase.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"

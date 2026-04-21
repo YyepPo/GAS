@@ -59,7 +59,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	USoundBase* DeathSound;
-
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
 	TSubclassOf<UGameplayEffect> DefaultPrimaryAttributeClass;
@@ -68,7 +67,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
 	TSubclassOf<UGameplayEffect> DefaultVitalAttributeClass;
 
-	void ApplyDefaultAttributes() const;
+	virtual void InitAbilityInfo();
+	virtual void ApplyDefaultAttributes() const;
 	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;
 	
 	///
@@ -87,9 +87,11 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GAS", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
-private:
-	
 	UPROPERTY(EditAnywhere, Category = "Character Class")
 	ECharacterClass CharacterClass;
+	
+private:
+	
+	
 
 };

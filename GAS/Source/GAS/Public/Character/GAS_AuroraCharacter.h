@@ -17,8 +17,6 @@ public:
 
 	AGAS_AuroraCharacter();
 
-		
-	
 protected:
 
 	virtual void BeginPlay() override;
@@ -45,6 +43,8 @@ protected:
 
 	/* IPlayerInterface Functions  END **/
 
+	virtual void InitAbilityInfo() override;
+	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -68,10 +68,4 @@ protected:
 public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-private:
-	
-	void InitAbilityInfo();
-
-	
 };

@@ -132,6 +132,11 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 // ICombatInterface Functions END
 ///
 
+void AGAS_BaseCharacter::InitAbilityInfo()
+{
+	
+}
+
 void AGAS_BaseCharacter::ApplyDefaultAttributes() const
 {
 	ApplyGameplayEffectToSelf(DefaultPrimaryAttributeClass,1);
