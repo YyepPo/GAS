@@ -1,5 +1,6 @@
 #include "ExecCalc/ExecCalc_Damage.h"
 
+#include "GAS_GameplayTags.h"
 #include "Abilities/GAS_AbilitySystemLibrary.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "Attributes/GAS_AttributeSetBase.h"
@@ -46,7 +47,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
     // --- Get base damage set by the ability via SetByCaller ---
     // Replace FGameplayTag::RequestGameplayTag with however you reference your damage tag
     float Damage = Spec.GetSetByCallerMagnitude(
-        FGameplayTag::RequestGameplayTag(FName("Data.Damage")), false, 0.f);
+         FGAS_GameplayTags::Get().Damage_Physical);
 
     // --- Armor ---
     float TargetArmor = 0.f;

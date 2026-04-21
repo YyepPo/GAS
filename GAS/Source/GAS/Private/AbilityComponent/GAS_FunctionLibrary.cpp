@@ -9,6 +9,14 @@
 #include "Game/GAS_GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
+UCharacterClassInfo* UGAS_FunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
+{
+	return nullptr;
+	//const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
+	//if (AuraGameMode == nullptr) return nullptr;
+	//return AuraGameMode->CharacterClassInfo;
+}
+
 int32 UGAS_FunctionLibrary::GetXPRewardForClassAndLevel(const UObject* WorldContextObject,
                                                         ECharacterClass CharacterClass, int32 CharacterLevel)
 {
@@ -42,7 +50,6 @@ void UGAS_FunctionLibrary::SetKnockbackForce(FGameplayEffectContextHandle& Effec
 FGameplayEffectContextHandle UGAS_FunctionLibrary::ApplyDamageEffect(
 	const FDamageEffectParams& DamageEffectParams)
 {
-	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
 	const AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
 	
 	FGameplayEffectContextHandle EffectContexthandle = DamageEffectParams.SourceAbilitySystemComponent->MakeEffectContext();
@@ -53,7 +60,8 @@ FGameplayEffectContextHandle UGAS_FunctionLibrary::ApplyDamageEffect(
 	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(DamageEffectParams.DamageGameplayEffectClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
 
 	AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
-		
+	
+
 	DamageEffectParams.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 	return EffectContexthandle;
 }
