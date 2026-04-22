@@ -37,7 +37,7 @@ void UGAS_MeleeAttack_Ability::ActivateAbility(const FGameplayAbilitySpecHandle 
     UAbilityTask_WaitGameplayEvent* WaitOpen =
         UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
             this,
-            FGameplayTag::RequestGameplayTag("Event.HitWindow.Open"),
+            FGameplayTag::RequestGameplayTag("Event.Attack.HitWindow.Open"),
             nullptr, true);
     WaitOpen->EventReceived.AddDynamic(this, &ThisClass::OnHitWindowOpen);
     WaitOpen->Activate();

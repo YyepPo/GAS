@@ -5,11 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "GAS_BaseCharacter.h"
+#include "Interface/CharacterInterface.h"
 #include "Interface/PlayerInterface.h"
 #include "GAS_AuroraCharacter.generated.h"
 
 UCLASS()
-class GAS_API AGAS_AuroraCharacter : public AGAS_BaseCharacter, public IPlayerInterface
+class GAS_API AGAS_AuroraCharacter : public AGAS_BaseCharacter, public ICharacterInterface
 {
 	GENERATED_BODY()
 

@@ -9,7 +9,34 @@ FGameplayTag UGAS_AbilitySystemLibrary::CalculateHitDirection(AActor* SourceChar
 		return FGAS_GameplayTags::Get().Effects_HitReact_Front; // safe default
 	}
 
-	// Calculate direction from attacker to target
+	const FVector ActorForwardVector = TargetActor->GetActorForwardVector();
+	// Direction FROM target TO source (where the hit is coming from)
+	const FVector DirectionToTarget = (SourceCharacter->GetActorLocation() - TargetActor->GetActorLocation()).GetSafeNormal();
+
+	const float Acos = GetDirectionToTargetInDegress(ActorForwardVector,DirectionToTarget);
+
+	FGameplayTag HitDirectionTag;
+
+	if (Acos >= -45.f && Acos < 45.f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Front;
+	}
+	else if (Acos >= -135.f && Acos < -45.f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Left;
+	}
+	else if (Acos >= 45.f && Acos < 135.f)
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Right;
+	}
+	else
+	{
+		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Back;
+	}
+
+	return HitDirectionTag;
+	
+	/*// Calculate direction from attacker to target
 	const FVector DirectionToAttacker = (SourceCharacter->GetActorLocation() 
 									   - TargetActor->GetActorLocation()).GetSafeNormal2D();
 
@@ -41,5 +68,19 @@ FGameplayTag UGAS_AbilitySystemLibrary::CalculateHitDirection(AActor* SourceChar
 		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Left;
 	}
 
-	return HitDirectionTag;
+	return HitDirectionTag;*/
+}
+
+float UGAS_AbilitySystemLibrary::GetDirectionToTargetInDegress(const FVector& ActorForwardVector,
+	const FVector& DirectionToTarget)
+{
+	float DotProduct =	FVector::DotProduct(ActorForwardVector,DirectionToTarget);
+
+	float Acos = FMath::Acos(DotProduct);
+	Acos = FMath::RadiansToDegrees(Acos);
+
+	FVector CrossProduct = FVector::CrossProduct(ActorForwardVector, DirectionToTarget);
+	(CrossProduct.Z < 0) ? Acos *= -1 : Acos *= 1;
+
+	return Acos;
 }

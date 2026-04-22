@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "Interface/CharacterInterface.h"
 #include "Interface/CombatInterface.h"
+#include "Interface/PlayerInterface.h"
 
 UGAS_AttributeSetBase::UGAS_AttributeSetBase()
 {
@@ -102,6 +103,11 @@ void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 		HandleIncomingDamage(EffectProperties);
 	}
 
+	if (Data.EvaluatedData.Attribute == GetIncomingXpAttribute())
+	{
+		HandleIncomingXP(EffectProperties);
+	}
+
 }
 
 void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
@@ -121,7 +127,7 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 			ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
 			if (CombatInterface)
 			{
-				CombatInterface->Die(FVector::Zero());
+				CombatInterface->Die(UGAS_FunctionLibrary::GetDeathImpulse(Props.EffectContextHandle));
 			}
 			SendXPEvent(Props);
 		}
@@ -130,12 +136,27 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 		{
 			if (Props.TargetCharacter->Implements<UCombatInterface>())
 			{
-				FGameplayTag HitReactTag = UGAS_AbilitySystemLibrary::CalculateHitDirection(Props.SourceCharacter,Props.TargetAvatarActor);
+				// Knockback
+				const FVector KnockbackForce = UGAS_FunctionLibrary::GetKnockbackForce(Props.EffectContextHandle);
+				if (!KnockbackForce.IsNearlyZero(1.f))
+				{
+					Props.TargetCharacter->LaunchCharacter(KnockbackForce, true, true);
+				}
+
+				// Hit react montage
 				
+				FGameplayTag HitReactTag = UGAS_AbilitySystemLibrary::CalculateHitDirection(
+				Props.SourceCharacter, Props.TargetAvatarActor);
+
+				// Temporarily add the direction tag so the ability can read it
+				Props.TargetASC->AddLooseGameplayTag(HitReactTag);
+
 				FGameplayTagContainer TagContainer;
-				TagContainer.AddTag(HitReactTag);
-				
+				TagContainer.AddTag(FGAS_GameplayTags::Get().Abilities_HitReact); // ONE ability tag
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+
+				// Remove it after activation (ability already read it during activation)
+				Props.TargetASC->RemoveLooseGameplayTag(HitReactTag);
 			}
 		}
 	}
@@ -201,6 +222,10 @@ void UGAS_AttributeSetBase::HandleIncomingXP(const FEffectProperties& Props)
 		}
 			
 		ICharacterInterface::Execute_AddToXP(Props.SourceCharacter, LocalIncomingXP);
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("QWE"));
 	}
 }
 

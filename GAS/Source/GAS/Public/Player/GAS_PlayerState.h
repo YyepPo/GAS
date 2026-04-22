@@ -50,9 +50,15 @@ public:
 	
 	/// 
 	// Getters
-	///  
-	FORCEINLINE int32 GetLevel() const {return Level;}
+	/// 
+
+	UFUNCTION(BlueprintCallable,BlueprintPure, Category = "Level")
+	FORCEINLINE int32 GetPlayerLevel() const {return Level;}
+	
+	UFUNCTION(BlueprintCallable,BlueprintPure, Category = "Level")
 	FORCEINLINE int32 GetXP() const {return XP;}
+	
+	UFUNCTION(BlueprintCallable,BlueprintPure, Category = "Level")
 	FORCEINLINE int32 GetAttributePoints() const {return AttributePoints;}
 	
 	

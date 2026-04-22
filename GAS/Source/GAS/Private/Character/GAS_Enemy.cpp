@@ -4,6 +4,7 @@
 #include "AttributeSet.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
+#include "Attributes/GAS_AttributeSetBase.h"
 
 AGAS_Enemy::AGAS_Enemy()
 {
@@ -15,7 +16,7 @@ AGAS_Enemy::AGAS_Enemy()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	
 	// Create Attribute Set
-	AttributeSet = CreateDefaultSubobject<UAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UGAS_AttributeSetBase>(TEXT("AttributeSet"));
 }
 
 int32 AGAS_Enemy::GetPlayerLevel_Implementation()
@@ -26,6 +27,8 @@ int32 AGAS_Enemy::GetPlayerLevel_Implementation()
 void AGAS_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
+	InitAbilityInfo();
+	ApplyDefaultAttributes();
 }
 
 void AGAS_Enemy::InitAbilityInfo()
@@ -41,7 +44,8 @@ void AGAS_Enemy::InitAbilityInfo()
 
 void AGAS_Enemy::ApplyDefaultAttributes() const
 {
-	UGAS_FunctionLibrary::InitializeDefaultAttributes(this,CharacterClass,Level,AbilitySystemComponent);
+	Super::ApplyDefaultAttributes();
+	//UGAS_FunctionLibrary::InitializeDefaultAttributes(this,CharacterClass,Level,AbilitySystemComponent);
 }
 
 

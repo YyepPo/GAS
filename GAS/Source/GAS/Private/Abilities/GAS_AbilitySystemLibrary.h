@@ -13,4 +13,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "GAS|Combat")
 	static FGameplayTag CalculateHitDirection(AActor* SourceCharacter,AActor* TargetActor);
+
+	UFUNCTION(BlueprintCallable)
+	static float GetDirectionToTargetInDegress(const FVector& ActorForwardVector,const FVector& DirectionToTarget);
 };

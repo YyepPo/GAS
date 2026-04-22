@@ -90,18 +90,18 @@ void AGAS_BaseCharacter::Die(const FVector& DeathImpulse)
 	{
 		UE_LOG(LogTemp,Warning,TEXT("AGAS_BaseCharacter: Die: Death sound not selected"));
 	}
-	
-	USkeletalMeshComponent* BodyMesh =	GetMesh();
-	if (BodyMesh)
-	{
-		BodyMesh->SetSimulatePhysics(true);
-		BodyMesh->SetEnableGravity(true);
-		BodyMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		BodyMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		BodyMesh->AddImpulse(DeathImpulse, NAME_None, true);	
-	}
-	
+
+	UE_LOG(LogTemp, Warning, TEXT("Die called with impulse: %s, magnitude: %.2f"), 
+		   *DeathImpulse.ToString(), DeathImpulse.Size());
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetEnableGravity(true);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	
+	GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
 	bIsDead = true;
 		
