@@ -110,6 +110,7 @@ struct FGAS_GameplayTags
 
 	FGameplayTag GameplayCue_FireBlast;
 
+	FGameplayTag Event_HitConfirm;
 private:
     static FGAS_GameplayTags GameplayTags;
 };

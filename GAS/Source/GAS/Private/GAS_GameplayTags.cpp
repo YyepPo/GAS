@@ -5,6 +5,11 @@ FGAS_GameplayTags FGAS_GameplayTags::GameplayTags;
 
 void FGAS_GameplayTags::InitializeNativeGameplayTags()
 {
+	GameplayTags.Event_HitConfirm = UGameplayTagsManager::Get().AddNativeGameplayTag(
+			FName("Event.HitConfirm"),
+			FString("hit confirm for hit marker")
+			);
+	
 	/*
 	 * Primary Attributes
 	 */

@@ -1,10 +1,14 @@
 ﻿#include "Character/GAS_AuroraCharacter.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GASCharacter.h"
+#include "GASPlayerController.h"
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
+#include "UI/GAS_HUD.h"
 
 
 // Sets default values
@@ -95,6 +99,14 @@ void AGAS_AuroraCharacter::InitAbilityInfo()
 	PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS,this);
 	AbilitySystemComponent = PS->GetAbilitySystemComponent();
 	AttributeSet = PS->GetAttributeSet();
+
+	if (AGASPlayerController* GASPlayerController = Cast<AGASPlayerController>(GetController()))
+	{
+		if (AGAS_HUD* GASHUD = Cast<AGAS_HUD>(GASPlayerController->GetHUD()))
+		{
+			GASHUD->InitOverlay(GASPlayerController, PS, AbilitySystemComponent, AttributeSet);
+		}
+	}
 }
 
 /* IPlayerInterface Functions **/
@@ -165,7 +177,17 @@ int32 AGAS_AuroraCharacter::GetSpellPoints_Implementation() const
 
 void AGAS_AuroraCharacter::LevelUp_Implementation()
 {
-	//Spawn level up niagara effect	
+	//Spawn level up effect inside the blueprint
+}
+
+void AGAS_AuroraCharacter::ShowHitMarker_Implementation()
+{
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		this,
+		FGameplayTag::RequestGameplayTag("Event.HitConfirm"),
+		Payload
+	);
 }
 
 /* IPlayerInterface Functions END **/

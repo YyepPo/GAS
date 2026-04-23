@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "GAS_BaseCharacter.h"
 #include "Interface/CharacterInterface.h"
-#include "Interface/PlayerInterface.h"
 #include "GAS_AuroraCharacter.generated.h"
 
 UCLASS()
@@ -41,7 +40,8 @@ protected:
 	virtual void AddToSpellPoints_Implementation(int32 InSpellPoints) override;
 	virtual int32 GetSpellPoints_Implementation() const override;
 	virtual void LevelUp_Implementation() override;
-
+	virtual void ShowHitMarker_Implementation() override;
+	
 	/* IPlayerInterface Functions  END **/
 
 	virtual void InitAbilityInfo() override;

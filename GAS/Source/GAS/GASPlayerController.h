@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GASPlayerController.generated.h"
 
+class UGAS_AbilitySystemComponent;
 class UInputMappingContext;
 class UUserWidget;
 
@@ -50,5 +51,11 @@ protected:
 	bool ShouldUseTouchControls() const;
 
 private:
-		
+
+	UPROPERTY()
+	TObjectPtr<UGAS_AbilitySystemComponent> AuraAbilitySystemComponent;
+
+	UGAS_AbilitySystemComponent* GetASC();
+
+	
 };

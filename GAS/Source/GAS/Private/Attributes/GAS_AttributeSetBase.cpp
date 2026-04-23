@@ -8,7 +8,6 @@
 #include "GameFramework/Character.h"
 #include "Interface/CharacterInterface.h"
 #include "Interface/CombatInterface.h"
-#include "Interface/PlayerInterface.h"
 
 UGAS_AttributeSetBase::UGAS_AttributeSetBase()
 {
@@ -144,20 +143,25 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				}
 
 				// Hit react montage
-				
 				FGameplayTag HitReactTag = UGAS_AbilitySystemLibrary::CalculateHitDirection(
 				Props.SourceCharacter, Props.TargetAvatarActor);
-
-				// Temporarily add the direction tag so the ability can read it
+				
 				Props.TargetASC->AddLooseGameplayTag(HitReactTag);
 
 				FGameplayTagContainer TagContainer;
-				TagContainer.AddTag(FGAS_GameplayTags::Get().Abilities_HitReact); // ONE ability tag
+				TagContainer.AddTag(FGAS_GameplayTags::Get().Abilities_HitReact);
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
-
-				// Remove it after activation (ability already read it during activation)
+				
 				Props.TargetASC->RemoveLooseGameplayTag(HitReactTag);
 			}
+		}
+	}
+
+	if (Props.SourceAvatarActor)
+	{
+		if (Props.SourceAvatarActor->Implements<UCharacterInterface>())
+		{
+			ICharacterInterface::Execute_ShowHitMarker(Props.SourceAvatarActor);
 		}
 	}
 }

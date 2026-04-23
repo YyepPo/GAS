@@ -2,11 +2,14 @@
 
 
 #include "GASPlayerController.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
 #include "Blueprint/UserWidget.h"
 #include "GAS.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
 void AGASPlayerController::BeginPlay()
@@ -67,4 +70,13 @@ bool AGASPlayerController::ShouldUseTouchControls() const
 {
 	// are we on a mobile platform? Should we force touch?
 	return SVirtualJoystick::ShouldDisplayTouchInterface() || bForceTouchControls;
+}
+
+UGAS_AbilitySystemComponent* AGASPlayerController::GetASC()
+{
+	if (AuraAbilitySystemComponent == nullptr)
+	{
+		AuraAbilitySystemComponent = Cast<UGAS_AbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+	}
+	return AuraAbilitySystemComponent;
 }

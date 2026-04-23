@@ -5,6 +5,8 @@
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "Attributes/GAS_AttributeSetBase.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Widget/OverlayWidget.h"
 
 AGAS_Enemy::AGAS_Enemy()
 {
@@ -17,6 +19,9 @@ AGAS_Enemy::AGAS_Enemy()
 	
 	// Create Attribute Set
 	AttributeSet = CreateDefaultSubobject<UGAS_AttributeSetBase>(TEXT("AttributeSet"));
+
+	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidgetComponent"));
+	HealthWidgetComponent->SetupAttachment(GetRootComponent());
 }
 
 int32 AGAS_Enemy::GetPlayerLevel_Implementation()
@@ -29,6 +34,12 @@ void AGAS_Enemy::BeginPlay()
 	Super::BeginPlay();
 	InitAbilityInfo();
 	ApplyDefaultAttributes();
+
+	UOverlayWidget* HealthWidget = Cast<UOverlayWidget>(HealthWidgetComponent->GetWidget());
+	if (HealthWidget)
+	{
+		HealthWidget->SetWidgetController(this);
+	}
 }
 
 void AGAS_Enemy::InitAbilityInfo()

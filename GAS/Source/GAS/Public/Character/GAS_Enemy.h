@@ -6,6 +6,9 @@
 #include "GAS_BaseCharacter.h"
 #include "GAS_Enemy.generated.h"
 
+class UWidgetComponent;
+class UOverlayWidget;
+
 UCLASS()
 class GAS_API AGAS_Enemy : public AGAS_BaseCharacter
 {
@@ -28,5 +31,7 @@ protected:
 private:
 
 	int32 Level = 1;
-	
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
 };
