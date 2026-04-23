@@ -6,6 +6,7 @@
 #include "Interface/CombatInterface.h"
 #include "GAS_BaseCharacter.generated.h"
 
+class UGameplayAbility;
 class UGameplayEffect;
 class UAbilitySystemComponent;
 class UAttributeSet;
@@ -67,11 +68,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
 	TSubclassOf<UGameplayEffect> DefaultVitalAttributeClass;
 
-	virtual void InitAbilityInfo();
+	virtual void InitAbilityInfo(AController* NewController);
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyDefaultAttributes() const;
 	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;
-	
+	void AddCharacterAbilities();
+
 	///
 	// Hit react montages ,4 sides
 	///
@@ -90,7 +92,10 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Character Class")
 	ECharacterClass CharacterClass;
-	
+
+
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 private:
 	
 	

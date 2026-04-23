@@ -32,7 +32,8 @@ int32 AGAS_Enemy::GetPlayerLevel_Implementation()
 void AGAS_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
-	InitAbilityInfo();
+	
+	InitAbilityInfo(nullptr);
 	ApplyDefaultAttributes();
 
 	UOverlayWidget* HealthWidget = Cast<UOverlayWidget>(HealthWidgetComponent->GetWidget());
@@ -40,9 +41,28 @@ void AGAS_Enemy::BeginPlay()
 	{
 		HealthWidget->SetWidgetController(this);
 	}
+
+	if (UGAS_AttributeSetBase* Set = Cast<UGAS_AttributeSetBase>(AttributeSet))
+	{
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Set->GetHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData& Data)
+		{
+			OnHealthChanged.Broadcast(Data.NewValue);
+		});
+
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Set->GetMaxHealthAttribute()).AddLambda(
+		[this](const FOnAttributeChangeData& Data)
+		{
+			OnMaxHealthChanged.Broadcast(Data.NewValue);
+		});
+
+		// These are used for initialization
+		OnMaxHealthChanged.Broadcast(Set->GetHealth());
+		OnMaxHealthChanged.Broadcast(Set->GetMaxHealth());
+	}
 }
 
-void AGAS_Enemy::InitAbilityInfo()
+void AGAS_Enemy::InitAbilityInfo(AController* NewController)
 {
 	if (AbilitySystemComponent == nullptr)
 	{

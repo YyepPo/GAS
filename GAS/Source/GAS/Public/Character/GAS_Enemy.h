@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GAS_BaseCharacter.h"
+#include "UI/WidgetController/GAS_OverlayWidgetController.h"
 #include "GAS_Enemy.generated.h"
 
+class FOnAttributeChangedSignature;
 class UWidgetComponent;
 class UOverlayWidget;
 
@@ -21,11 +23,17 @@ public:
 	virtual int32 GetPlayerLevel_Implementation() override;
 
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAttributeChangedSignature OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnAttributeChangedSignature OnMaxHealthChanged;
+	
 protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InitAbilityInfo() override;
+	virtual void InitAbilityInfo(AController* NewController) override;
 	virtual void ApplyDefaultAttributes() const override;
 	
 private:

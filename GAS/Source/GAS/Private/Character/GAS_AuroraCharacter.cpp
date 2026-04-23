@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GASCharacter.h"
 #include "GASPlayerController.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
 #include "UI/GAS_HUD.h"
@@ -77,7 +78,11 @@ void AGAS_AuroraCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	InitAbilityInfo();
+	UE_LOG(LogTemp, Warning, TEXT("PossessedBy: Controller = %s"), *NewController->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("PossessedBy: PlayerState = %s"), 
+		NewController->GetPlayerState<AGAS_PlayerState>() ? TEXT("VALID") : TEXT("NULL"));
+	
+	InitAbilityInfo(NewController);
 	ApplyDefaultAttributes();
 }
 
@@ -85,19 +90,21 @@ void AGAS_AuroraCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	
-	InitAbilityInfo();
+	//InitAbilityInfo(GetC);
 }
 
-void AGAS_AuroraCharacter::InitAbilityInfo()
+void AGAS_AuroraCharacter::InitAbilityInfo(AController* NewController)
 {
-	AGAS_PlayerState* PS = GetController()->GetPlayerState<AGAS_PlayerState>();
+	AGAS_PlayerState* PS = Controller->GetPlayerState<AGAS_PlayerState>();
 	if (PS == nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: PlayerState is NULL"));
 		return;
 	}
 	
 	PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS,this);
 	AbilitySystemComponent = PS->GetAbilitySystemComponent();
+
 	AttributeSet = PS->GetAttributeSet();
 
 	if (AGASPlayerController* GASPlayerController = Cast<AGASPlayerController>(GetController()))
@@ -106,6 +113,13 @@ void AGAS_AuroraCharacter::InitAbilityInfo()
 		{
 			GASHUD->InitOverlay(GASPlayerController, PS, AbilitySystemComponent, AttributeSet);
 		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: ASC set successfully -> %s"), *AbilitySystemComponent->GetName());
+	if (AbilitySystemComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: ASC set successfully -> %s"), *AbilitySystemComponent->GetName());
+		AddCharacterAbilities();
 	}
 }
 

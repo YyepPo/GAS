@@ -35,6 +35,7 @@ void UGAS_AbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 		if (const UGAS_BaseAbility* Ability = Cast<UGAS_BaseAbility>(AbilitySpec.Ability))
 		{
 			AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability->InputTag);
+			//AbilitySpec.DynamicAbilityTags.AddTag(FGAS_GameplayTags::Get().Abilities_Status_Equipped);
 			GiveAbility(AbilitySpec);
 		}
 	}

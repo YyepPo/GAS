@@ -7,10 +7,10 @@
 #include "GameFramework/Character.h"
 #include "GAS_GameplayTags.h"
 #include "Kismet/GameplayStatics.h"
-#include "AbilitySystemInterface.h"
 #include "Public/Player/GAS_PlayerState.h"
 #include "Components/CapsuleComponent.h"
 #include "GameplayEffect.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 
 // Sets default values
 AGAS_BaseCharacter::AGAS_BaseCharacter()
@@ -132,9 +132,35 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 // ICombatInterface Functions END
 ///
 
-void AGAS_BaseCharacter::InitAbilityInfo()
+void AGAS_BaseCharacter::InitAbilityInfo(AController* NewController)
 {
 	
+}
+
+void AGAS_BaseCharacter::AddCharacterAbilities()
+{
+	
+	
+	AGAS_PlayerState* STATE = GetPlayerState<AGAS_PlayerState>();
+	if (STATE)
+	{
+			UGAS_AbilitySystemComponent* QWEWQE = Cast<UGAS_AbilitySystemComponent>(STATE->GetAbilitySystemComponent());
+			if(QWEWQE)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("QWEWQE"));
+			}
+	}
+
+	
+	UGAS_AbilitySystemComponent* AuraASC = CastChecked<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	if (AuraASC)
+	{
+		AuraASC->AddCharacterAbilities(StartupAbilities);
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("QWEWQE"));
+	}
 }
 
 void AGAS_BaseCharacter::ApplyDefaultAttributes() const
