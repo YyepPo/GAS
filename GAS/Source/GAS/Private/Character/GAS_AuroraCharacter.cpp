@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GASCharacter.h"
 #include "GASPlayerController.h"
+#include "GAS_GameplayTags.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
@@ -50,6 +51,11 @@ void AGAS_AuroraCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AGAS_AuroraCharacter::Move(const FInputActionValue& Value)
 {
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGAS_GameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
+	
 	const FVector2D InputAxisVector = Value.Get<FVector2D>();
 
 	// Use controller yaw for movement direction (camera-relative movement)
@@ -92,6 +98,15 @@ void AGAS_AuroraCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitAbilityInfo();
+}
+
+void AGAS_AuroraCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGAS_GameplayTags::Get().Player_Block_InputPressed))
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(FGAS_GameplayTags::Get().Player_Block_InputPressed);
+	}
 }
 
 void AGAS_AuroraCharacter::InitAbilityInfo()

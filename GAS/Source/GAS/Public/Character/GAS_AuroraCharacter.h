@@ -26,7 +26,8 @@ protected:
 
 	/** Called on client, initializes AbilitySystemComponent on the client */
 	virtual void OnRep_PlayerState() override;
-	
+
+	virtual void Landed(const FHitResult& Hit) override;
 	
 	/* IPlayerInterface Functions **/
 	virtual int32 FindLevelForXP_Implementation(int32 InXP) const override;	
