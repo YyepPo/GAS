@@ -1,10 +1,12 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+//#include "Data/GAS_AbilityInfoClass.h"
+#include "Data/AbilityInfo.h"
 #include "UObject/Object.h"
 #include "GAS_WidgetController.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedSignature, int32, NewValue);
+class UGAS_AbilityInfo;
 
 class UGAS_AbilitySystemComponent;
 class UAbilitySystemComponent;
@@ -17,6 +19,8 @@ class AGASPlayerController;
 class APlayerState;
 class AGAS_PlayerState;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedSignature, int32, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FGASAbilityInfo&, Info);
 
 USTRUCT(BlueprintType)
 struct FGAS_WidgetControllerParams
@@ -57,12 +61,16 @@ public:
 	virtual void BroadcastInitialValues();
 	virtual void BindCallbacksToDependencies();
 
-	//UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
-	//FGAS_WidgetControllerParams AbilityInfoDelegate;
+	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+	FAbilityInfoSignature AbilityInfoDelegate;
+
 
 protected:
 
 protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
+	TObjectPtr<UAbilityInfo> AbilityInfo;
 	
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
 	TObjectPtr<APlayerController> PlayerController;

@@ -35,10 +35,12 @@ void UGAS_AbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 		if (const UGAS_BaseAbility* Ability = Cast<UGAS_BaseAbility>(AbilitySpec.Ability))
 		{
 			AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability->InputTag);
-			//AbilitySpec.DynamicAbilityTags.AddTag(FGAS_GameplayTags::Get().Abilities_Status_Equipped);
+			AbilitySpec.GetDynamicSpecSourceTags().AddTag(FGAS_GameplayTags::Get().Abilities_Status_Equipped);
 			GiveAbility(AbilitySpec);
 		}
 	}
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenEvent.Broadcast();
 }
 
 void UGAS_AbilitySystemComponent::AddPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities)
@@ -48,6 +50,18 @@ void UGAS_AbilitySystemComponent::AddPassiveAbilities(const TArray<TSubclassOf<U
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass,1);
 		GiveAbilityAndActivateOnce(AbilitySpec);
 	}
+}
+
+FGameplayTag UGAS_AbilitySystemComponent::GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	for (FGameplayTag StatusTag : AbilitySpec.GetDynamicSpecSourceTags())
+	{
+		if (StatusTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities.Status"))))
+		{
+			return StatusTag;
+		}
+	}
+	return FGameplayTag();
 }
 
 void UGAS_AbilitySystemComponent::AddCharacterAbilitiesAndActive(const TArray<TSubclassOf<UGameplayAbility>>& Abilities)
@@ -60,6 +74,18 @@ void UGAS_AbilitySystemComponent::AddCharacterAbilitiesAndActive(const TArray<TS
 			AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability->InputTag);
 			GiveAbilityAndActivateOnce(AbilitySpec);
 			
+		}
+	}
+}
+
+void UGAS_AbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!Delegate.ExecuteIfBound(AbilitySpec))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
 		}
 	}
 }

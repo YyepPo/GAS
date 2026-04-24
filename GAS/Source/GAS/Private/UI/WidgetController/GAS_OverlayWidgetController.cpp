@@ -1,5 +1,9 @@
 ﻿#include "UI/WidgetController/GAS_OverlayWidgetController.h"
+
+#include "GAS_GameplayTags.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Attributes/GAS_AttributeSetBase.h"
+
 #include "Data/LevelUpConfig.h"
 #include "Player/GAS_PlayerState.h"
 
@@ -49,6 +53,20 @@ void UGAS_OverlayWidgetController::BindCallbacksToDependencies()
 			}
 		);
 
+	if (GetGASASC())
+	{
+		GetGASASC()->AbilityEquippedEvent.AddUObject(this, &UGAS_OverlayWidgetController::OnAbilityEquipped);
+		if (GetGASASC()->bStartupAbilitiesGiven)
+		{
+			BroadcastAbilityInfo();
+		}
+		else
+		{
+			GetGASASC()->AbilitiesGivenEvent.AddUObject(this, &UGAS_OverlayWidgetController::BroadcastAbilityInfo);
+		}
+
+	}
+
 	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(
 	   FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.HitConfirm")),
 	   FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(
@@ -59,6 +77,39 @@ void UGAS_OverlayWidgetController::BindCallbacksToDependencies()
 void UGAS_OverlayWidgetController::OnHitConfirm(FGameplayTag Tag, const FGameplayEventData* Payload)
 {
 	OnHitMarkerDelegate.Broadcast();
+}
+
+void UGAS_OverlayWidgetController::OnAbilityEquipped(const FGameplayTag& AbilityTag, const FGameplayTag& Status,
+	const FGameplayTag& Slot, const FGameplayTag& PrevSlot)
+{
+	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
+	
+	FGASAbilityInfo LastSlotInfo;
+	LastSlotInfo.StatusTag = GameplayTags.Abilities_Status_Unlocked;
+	LastSlotInfo.InputTag = PrevSlot;
+	LastSlotInfo.AbilityTag = GameplayTags.Abilities_None;
+	// Broadcast empty info if PreviousSlot is a valid slot. Only if equipping an already-equipped spell
+	AbilityInfoDelegate.Broadcast(LastSlotInfo);
+	
+	FGASAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
+	Info.StatusTag = Status;
+	Info.InputTag = Slot;
+	AbilityInfoDelegate.Broadcast(Info);
+}
+
+void UGAS_OverlayWidgetController::BroadcastAbilityInfo()
+{
+	if (!GetGASASC()->bStartupAbilitiesGiven) return;
+
+	FForEachAbility BroadcastDelegate;
+	BroadcastDelegate.BindLambda([this](const FGameplayAbilitySpec& AbilitySpec)
+	{
+		FGASAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(GetGASASC()->GetAbilityTagFromSpec(AbilitySpec));
+		Info.InputTag = GetGASASC()->GetInputTagFromSpec(AbilitySpec);
+		Info.StatusTag = GetGASASC()->GetStatusFromSpec(AbilitySpec);
+		AbilityInfoDelegate.Broadcast(Info);
+	});
+	GetGASASC()->ForEachAbility(BroadcastDelegate);
 }
 
 void UGAS_OverlayWidgetController::OnXPChanged(int32 NewXP)

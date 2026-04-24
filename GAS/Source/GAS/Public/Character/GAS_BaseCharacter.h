@@ -68,7 +68,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
 	TSubclassOf<UGameplayEffect> DefaultVitalAttributeClass;
 
-	virtual void InitAbilityInfo(AController* NewController);
+	virtual void InitAbilityInfo();
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyDefaultAttributes() const;
 	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;

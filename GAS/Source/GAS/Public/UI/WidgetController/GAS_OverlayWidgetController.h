@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "GAS_WidgetController.h"
+#include "Data/AbilityInfo.h"
 #include "GAS_OverlayWidgetController.generated.h"
 
 USTRUCT(BlueprintType)
@@ -29,6 +30,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLevelChangedSignature, int32, NewLevel, bool, bLevelUp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitMarker);
+
 
 struct FGameplayEventData;
 
@@ -75,6 +77,8 @@ protected:
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
 
+	void OnAbilityEquipped(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PrevSlot);
+	void BroadcastAbilityInfo();
 	void OnXPChanged(int32 NewXP);
 	void OnHitConfirm(FGameplayTag Tag, const FGameplayEventData* Payload);
 };

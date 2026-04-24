@@ -82,20 +82,21 @@ void AGAS_AuroraCharacter::PossessedBy(AController* NewController)
 	UE_LOG(LogTemp, Warning, TEXT("PossessedBy: PlayerState = %s"), 
 		NewController->GetPlayerState<AGAS_PlayerState>() ? TEXT("VALID") : TEXT("NULL"));
 	
-	InitAbilityInfo(NewController);
+	InitAbilityInfo();
 	ApplyDefaultAttributes();
+	AddCharacterAbilities();
 }
 
 void AGAS_AuroraCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	
-	//InitAbilityInfo(GetC);
+	InitAbilityInfo();
 }
 
-void AGAS_AuroraCharacter::InitAbilityInfo(AController* NewController)
+void AGAS_AuroraCharacter::InitAbilityInfo()
 {
-	AGAS_PlayerState* PS = Controller->GetPlayerState<AGAS_PlayerState>();
+	AGAS_PlayerState* PS = GetPlayerState<AGAS_PlayerState>();
 	if (PS == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: PlayerState is NULL"));
@@ -113,13 +114,6 @@ void AGAS_AuroraCharacter::InitAbilityInfo(AController* NewController)
 		{
 			GASHUD->InitOverlay(GASPlayerController, PS, AbilitySystemComponent, AttributeSet);
 		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: ASC set successfully -> %s"), *AbilitySystemComponent->GetName());
-	if (AbilitySystemComponent)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InitAbilityInfo: ASC set successfully -> %s"), *AbilitySystemComponent->GetName());
-		AddCharacterAbilities();
 	}
 }
 

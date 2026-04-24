@@ -33,7 +33,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InitAbilityInfo(AController* NewController) override;
+	virtual void InitAbilityInfo() override;
 	virtual void ApplyDefaultAttributes() const override;
 	
 private:

@@ -132,34 +132,22 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 // ICombatInterface Functions END
 ///
 
-void AGAS_BaseCharacter::InitAbilityInfo(AController* NewController)
+void AGAS_BaseCharacter::InitAbilityInfo()
 {
 	
 }
 
 void AGAS_BaseCharacter::AddCharacterAbilities()
 {
-	
-	
-	AGAS_PlayerState* STATE = GetPlayerState<AGAS_PlayerState>();
-	if (STATE)
-	{
-			UGAS_AbilitySystemComponent* QWEWQE = Cast<UGAS_AbilitySystemComponent>(STATE->GetAbilitySystemComponent());
-			if(QWEWQE)
-			{
-				UE_LOG(LogTemp,Warning,TEXT("QWEWQE"));
-			}
-	}
-
-	
 	UGAS_AbilitySystemComponent* AuraASC = CastChecked<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	if (HasAuthority() == false)
+	{
+		return;
+	}
+	
 	if (AuraASC)
 	{
 		AuraASC->AddCharacterAbilities(StartupAbilities);
-	}
-	else
-	{
-		UE_LOG(LogTemp,Warning,TEXT("QWEWQE"));
 	}
 }
 

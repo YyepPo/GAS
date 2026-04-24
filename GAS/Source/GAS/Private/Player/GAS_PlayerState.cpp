@@ -1,12 +1,13 @@
 #include "Public/Player/GAS_PlayerState.h"
 #include "AbilitySystemComponent.h"
+#include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Attributes/GAS_AttributeSetBase.h"
 #include "Net/UnrealNetwork.h"
 
 AGAS_PlayerState::AGAS_PlayerState()
 {
 	// Create ability system component and mark it as replicated
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("Ability System Component"));
+	AbilitySystemComponent = CreateDefaultSubobject<UGAS_AbilitySystemComponent>(TEXT("Ability System Component"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 

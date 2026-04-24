@@ -33,7 +33,7 @@ void AGAS_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitAbilityInfo(nullptr);
+	InitAbilityInfo();
 	ApplyDefaultAttributes();
 
 	UOverlayWidget* HealthWidget = Cast<UOverlayWidget>(HealthWidgetComponent->GetWidget());
@@ -62,7 +62,7 @@ void AGAS_Enemy::BeginPlay()
 	}
 }
 
-void AGAS_Enemy::InitAbilityInfo(AController* NewController)
+void AGAS_Enemy::InitAbilityInfo()
 {
 	if (AbilitySystemComponent == nullptr)
 	{

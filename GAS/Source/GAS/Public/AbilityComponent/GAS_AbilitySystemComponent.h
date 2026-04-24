@@ -8,7 +8,9 @@
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FDeactivatePassiveAbility, const FGameplayTag& /*AbilityTag*/);
-
+DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
+DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquipped, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*Status*/, const FGameplayTag& /*Slot*/, const FGameplayTag& /*PrevSlot*/);
+DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAS_API UGAS_AbilitySystemComponent : public UAbilitySystemComponent
@@ -33,6 +35,10 @@ public:
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities);
 	
 	void AddPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities);
+
+	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+
+	void ForEachAbility(const FForEachAbility& Delegate);
 	
 	// Abilities will be automatically activated
 	UFUNCTION(BlueprintCallable)
@@ -56,12 +62,15 @@ public:
 	FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
-	
+	bool bStartupAbilitiesGiven = false;
 	
 	///
 	///Delegates
 	///
-	
+
+	FAbilitiesGiven AbilitiesGivenEvent;
+	FAbilityEquipped AbilityEquippedEvent;
+	FForEachAbility ForeachAbility;
 	//UPROPERTY(BlueprintAssignable)
 	//FDeactivatePassiveAbility DeactivatePassiveAbility;
 };

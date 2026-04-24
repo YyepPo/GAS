@@ -44,7 +44,7 @@ protected:
 	
 	/* IPlayerInterface Functions  END **/
 
-	virtual void InitAbilityInfo(AController* NewController) override;
+	virtual void InitAbilityInfo() override;
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
