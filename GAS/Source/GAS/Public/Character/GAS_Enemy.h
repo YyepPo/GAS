@@ -42,4 +42,6 @@ private:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
+	
+	void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 };

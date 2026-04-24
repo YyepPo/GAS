@@ -2,10 +2,12 @@
 
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
+#include "GAS_GameplayTags.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "Attributes/GAS_AttributeSetBase.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widget/OverlayWidget.h"
 
 AGAS_Enemy::AGAS_Enemy()
@@ -71,12 +73,37 @@ void AGAS_Enemy::InitAbilityInfo()
 	}
 	
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	
+	AbilitySystemComponent->RegisterGameplayTagEvent(FGAS_GameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AGAS_Enemy::StunTagChanged);
+
 }
 
 void AGAS_Enemy::ApplyDefaultAttributes() const
 {
 	Super::ApplyDefaultAttributes();
 	//UGAS_FunctionLibrary::InitializeDefaultAttributes(this,CharacterClass,Level,AbilitySystemComponent);
+}
+
+void AGAS_Enemy::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		// Stop movement
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->StopMovementImmediately();
+
+		// Stop any active abilities
+		AbilitySystemComponent->CancelAllAbilities();
+
+		// Play stun gameplay cue
+		FGameplayCueParameters CueParams;
+		CueParams.Location = GetActorLocation();
+		CueParams.Instigator = this;
+		AbilitySystemComponent->AddGameplayCue(
+			FGameplayTag::RequestGameplayTag("GameplayCue.Debuff.Stun"),
+			CueParams
+		);	
+	}
 }
 
 
