@@ -96,7 +96,6 @@ void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 		SetStamina(FMath::Clamp(GetStamina(),0,GetMaxStamina()));
 	}
 	
-	// Handle incoming damage
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
 		HandleIncomingDamage(EffectProperties);
@@ -219,9 +218,7 @@ void UGAS_AttributeSetBase::HandleIncomingXP(const FEffectProperties& Props)
 			ICharacterInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
 			ICharacterInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
 	
-			/*bTopOffHealth = true;
-			bTopOffMana = true;*/
-				
+
 			ICharacterInterface::Execute_LevelUp(Props.SourceCharacter);
 		}
 			

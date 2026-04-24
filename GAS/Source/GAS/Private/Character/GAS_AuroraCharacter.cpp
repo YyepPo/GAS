@@ -196,6 +196,14 @@ void AGAS_AuroraCharacter::ShowHitMarker_Implementation()
 		FGameplayTag::RequestGameplayTag("Event.HitConfirm"),
 		Payload
 	);
+
+	if (HitCameraShake)
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+		{
+			PlayerController->ClientStartCameraShake(HitCameraShake);
+		}	
+	}
 }
 
 /* IPlayerInterface Functions END **/

@@ -65,6 +65,9 @@ protected:
 	/** Called for looking input */
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, Category = "Camera Shake")
+	TSubclassOf<class UCameraShakeBase> HitCameraShake;
 	
 public:
 
