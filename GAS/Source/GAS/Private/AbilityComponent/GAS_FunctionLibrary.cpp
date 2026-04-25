@@ -8,6 +8,7 @@
 #include "Data/GAS_AbilityTypes.h"
 #include "Game/GAS_GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Serialization/ArchiveSerializedPropertyChain.h"
 
 UCharacterClassInfo* UGAS_FunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
 {
@@ -137,4 +138,42 @@ FVector UGAS_FunctionLibrary::GetDeathImpulse(const FGameplayEffectContextHandle
 		return AuraEffectContext->GetDeathImpulse();
 	}
 	return FVector::ZeroVector;
+}
+
+bool UGAS_FunctionLibrary::ApplyBlockMovementTag(UAbilitySystemComponent* ASC)
+{
+	if (ASC == nullptr)
+	{
+		return false;
+	}
+	
+	FGAS_GameplayTags::Get();
+	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputHeld);
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputPressed);
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputReleased);
+	
+	ASC->AddLooseGameplayTags(BlockedTags);
+
+	return true;
+}
+
+bool UGAS_FunctionLibrary::RemoveBlockMovementTag(UAbilitySystemComponent* ASC)
+{
+	if (ASC == nullptr)
+	{
+		return false;
+	}
+	
+	FGAS_GameplayTags::Get();
+	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
+	FGameplayTagContainer BlockedTags;
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputHeld);
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputPressed);
+	BlockedTags.AddTag(GameplayTags.Player_Block_InputReleased);
+	
+	ASC->RemoveLooseGameplayTags(BlockedTags);
+
+	return true;
 }

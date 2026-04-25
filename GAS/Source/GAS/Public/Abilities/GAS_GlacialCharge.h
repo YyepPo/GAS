@@ -14,8 +14,9 @@ class GAS_API UGAS_GlacialCharge : public UGAS_BaseAbility
 	UGAS_GlacialCharge();
 	
 public:
-	
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnTrailSegment();
 	
 private:
 	
@@ -41,13 +42,11 @@ private:
 	FTimerHandle TrailSpawnTimer;
 	FTimerHandle DamageTimer;
 	FTimerHandle ChargeDurationTimer;
-
+	
 	UFUNCTION()
 	void OnMontageCompleted();
 	UFUNCTION()
 	void PerformChargeSweep();
-	UFUNCTION()
-	void SpawnTrailSegment();
 	
 	UPROPERTY()
 	TArray<AGAS_IcyTrail*> SpawnedTrailSegments;

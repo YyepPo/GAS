@@ -1,5 +1,6 @@
 ﻿#include "Abilities/GAS_Hoarfrost.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,13 +21,15 @@ void UGAS_Hoarfrost::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(Handle, ActorInfo, ActivationInfo,true,false);
 		return;
 	}
+
+	UGAS_FunctionLibrary::ApplyBlockMovementTag(GetAbilitySystemComponentFromActorInfo());
 	
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (Character)
 	{
 		Character->GetCharacterMovement()->DisableMovement();
 	}
-
+	
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, HoarfrostMontage);
 
@@ -43,8 +46,7 @@ void UGAS_Hoarfrost::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			Controller->ClientStartCameraShake(HoarfrostCameraShake);
 		}	
 	}
-
-
+	
 	if (WindParticle)
 	{
 		FVector SpawnLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
@@ -61,6 +63,8 @@ void UGAS_Hoarfrost::OnMontageCompleted()
 	{
 		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
+
+	UGAS_FunctionLibrary::RemoveBlockMovementTag(GetAbilitySystemComponentFromActorInfo());
 
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,false);
 }

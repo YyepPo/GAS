@@ -75,7 +75,6 @@ void AGAS_Enemy::InitAbilityInfo()
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
 	
 	AbilitySystemComponent->RegisterGameplayTagEvent(FGAS_GameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AGAS_Enemy::StunTagChanged);
-
 }
 
 void AGAS_Enemy::ApplyDefaultAttributes() const

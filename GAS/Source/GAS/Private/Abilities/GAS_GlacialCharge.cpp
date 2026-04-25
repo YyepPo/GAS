@@ -1,6 +1,7 @@
 ﻿#include "Abilities/GAS_GlacialCharge.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "TimerManager.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Actors/GAS_IcyTrail.h"
 #include "GameFramework/Character.h"
@@ -11,54 +12,7 @@ UGAS_GlacialCharge::UGAS_GlacialCharge()
 {
 }
 
-void UGAS_GlacialCharge::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                         const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		return;
-	}
 
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-
-	// Ignore all terrain during charge
-	Character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	Character->GetCharacterMovement()->MaxFlySpeed = ChargeSpeed;
-
-	// Start charging forward
-	bIsCharging = true;
-
-	// Start spawning trail periodically
-	GetWorld()->GetTimerManager().SetTimer(
-		TrailSpawnTimer,
-		this,
-		&UGAS_GlacialCharge::SpawnTrailSegment,
-		TrailSpawnInterval,
-		true // loop
-	);
-
-	// Start sweep timer to detect and push enemies
-	GetWorld()->GetTimerManager().SetTimer(
-		DamageTimer,
-		this,
-		&UGAS_GlacialCharge::PerformChargeSweep,
-		0.1f,
-		true
-	);
-
-	// Play montage
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, ChargeMontage);
-	MontageTask->OnCompleted.AddDynamic(this, &UGAS_GlacialCharge::OnMontageCompleted);
-	MontageTask->OnInterrupted.AddDynamic(this, &UGAS_GlacialCharge::OnMontageCompleted);
-	MontageTask->ReadyForActivation();
-
-	// Listen for input to destroy trail
-}
 
 void UGAS_GlacialCharge::OnMontageCompleted()
 {

@@ -36,7 +36,7 @@ virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGame
 private:
 
 	UAnimMontage* GetMontageForDirection(float ForwardDot,float RightDot);
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	FLeapMontages Montages;
 
@@ -48,4 +48,14 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Leap")
 	float LaunchZForce = 400.f;
+
+	///
+	// Clone
+	/// 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Leap")
+	TSubclassOf<AActor> CloneClass;
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnClone(const FVector& Location,const FRotator& Rotation);
 };
