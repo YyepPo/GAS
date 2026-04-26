@@ -11,7 +11,7 @@
 
 1. [Overview](#Overview)
 2. [Characters](#2-characters)
-   - 2.1 [GAS\_BaseCharacter](#Gas_basecharacter)
+   - 2.1 [GAS\_BaseCharacter](#21-gas_basecharacter)
    - 2.2 [GAS\_AuroraCharacter · Player](#Gas_auroracharacter--player)
    - 2.3 [GAS\_Enemy · AI](#Gas_enemy--ai)
 3. [Attribute System](#Attribute-system)
