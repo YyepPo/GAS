@@ -7,6 +7,9 @@
 ![Enhanced Input](https://img.shields.io/badge/Enhanced%20Input-UE5-orange?style=flat)
 ![License](https://img.shields.io/badge/License-MIT-gray?style=flat)
 
+## Table of Contents
+- [Overview](#Overview)
+
 ---
 
 ## Overview
