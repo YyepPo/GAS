@@ -124,3 +124,103 @@ All AI-controlled enemies derive from this class. Unlike Aurora, enemies own the
 Each enemy has a **health bar widget component** rendered in world space, updated in real time via an attribute change listener on their ASC.
 
 Behavior is driven by a **Behavior Tree**. The enemy's `CharacterClass` tag (from ICombatInterface) determines which ability set and attribute curve they are initialized with at spawn — adding a new enemy type requires no code changes, only data.
+
+## 5. Attribute System
+
+All attributes are defined in `GAS_AttributeSetBase`, which derives from `UAttributeSet`. Initial values are applied at spawn via a Gameplay Effect that reads from a **curve table** — no hardcoded defaults anywhere in code.
+
+---
+
+### 3.1 Primary Attributes
+
+Manually assigned by the player through the attribute menu using attribute points earned on level up. Drive secondary attribute values through Gameplay Effects.
+
+| Attribute | Description |
+|-----------|-------------|
+| `Strength` | Physical power — affects physical damage output and related secondary stats |
+| `Intelligence` | Magical aptitude — affects spell damage, mana capacity, and mana regeneration |
+
+---
+
+### 3.2 Secondary / Vital Attributes
+
+Derived from primary attributes via Gameplay Effects and clamped in `PostGameplayEffectExecute`. Updated automatically whenever a primary attribute changes.
+
+| Attribute | Description |
+|-----------|-------------|
+| `Health` | Current health. Reaches zero → death. |
+| `MaxHealth` | Health ceiling. Derived from Strength. |
+| `HealthRegenerationRate` | Passive health recovery per second. |
+| `Mana` | Current mana pool. Consumed on ability activation. |
+| `MaxMana` | Mana ceiling. Derived from Intelligence. |
+| `Stamina` | Current stamina. Used for movement actions. |
+| `MaxStamina` | Stamina ceiling. |
+| `StaminaRegenerationRate` | Passive stamina recovery per second. |
+
+---
+
+### 3.3 Meta Attributes
+
+Meta attributes are **transient** — they have no persistent value and are never replicated. They act as a one-frame scratch pad that Gameplay Effects write into, allowing `PostGameplayEffectExecute` to intercept the value, apply game logic, and zero it out before the next frame.
+
+| Attribute | Description |
+|-----------|-------------|
+| `IncomingDamage` | Receives raw damage from a Gameplay Effect. Consumed immediately to modify `Health`. |
+| `IncomingXP` | Receives an XP reward from a Gameplay Event. Consumed immediately to drive the level-up flow. |
+
+---
+
+### 3.4 IncomingDamage Flow
+
+When a Gameplay Effect writes to `IncomingDamage`, `PostGameplayEffectExecute` fires and runs the following sequence:
+
+```
+IncomingDamage set by GE
+        │
+        ▼
+  Health -= IncomingDamage
+  IncomingDamage = 0
+        │
+        ├─ Health <= 0 ──────────────────────────────────────────►  ICombatInterface::Die(DeathImpulse)
+        │                                                                      │
+        │                                                             SendXPEvent() to instigator
+        │
+        └─ Health > 0 ───► Knockback impulse applied
+                                    │
+                                    ▼
+                          GetHitReactMontage(HitTag) played
+                                    │
+                                    ▼
+                          ShowHitMarker() fired on instigator HUD
+```
+
+---
+
+### 3.5 IncomingXP Flow  (`SendXPEvent` → `HandleIncomingXP`)
+
+XP is not applied directly. Instead it travels through the GAS event system to keep the reward flow decoupled from the damage flow.
+
+**Step 1 — `SendXPEvent` (called on death)**
+Reads the dead enemy's `CharacterClass` and `Level` via `ICombatInterface`, then calls `GAS_FunctionLibrary::GetXPRewardForClassAndLevel()` to look up the correct reward from a data table. Packages the result into a `FGameplayEventData` payload tagged `Attributes_Meta_IncomingXP` and dispatches it to the **instigator** (Aurora) via `UAbilitySystemBlueprintLibrary::SendGameplayEventToActor`.
+
+**Step 2 — `HandleIncomingXP` (fires on the instigator's AttributeSet)**
+Reads and immediately zeroes `IncomingXP` to prevent double-processing. Then computes whether a level-up has occurred:
+
+```
+NewLevel = FindLevelForXP(CurrentXP + IncomingXP)
+NumLevelUps = NewLevel - CurrentLevel
+
+if NumLevelUps > 0:
+    for each level gained:
+        AttributePointsReward += GetAttributePointsReward(level)
+        SpellPointsReward     += GetSpellPointsReward(level)
+
+    AddToPlayerLevel(NumLevelUps)
+    AddToAttributePoints(AttributePointsReward)
+    AddToSpellPoints(SpellPointsReward)
+    LevelUp()   ← fires level-up cue, updates UI
+
+AddToXP(IncomingXP)   ← always applied, level-up or not
+```
+
+> **Design note:** XP travels as a Gameplay Event tagged `Attributes_Meta_IncomingXP` rather than a direct function call. This means any ability or system can award XP by dispatching the same event — the AttributeSet handles the rest with no additional wiring. Multi-level-up in a single kill is also handled correctly: rewards are accumulated in a loop over each level gained, so no points are lost if the player gains two or more levels at once.
