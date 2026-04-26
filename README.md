@@ -24,7 +24,7 @@
    - 4.1 [GAS\_AbilitySystemComponent](#41-gas_abilitysystemcomponent)
    - 4.2 [GAS\_BaseAbility](#42-gas_baseability)
    - 4.3 [Aurora's Abilities](#43-auroras-abilities)
-5. [UI Arechitecture](#43-ui-architecture)
+5. [UI Arechitecture](#5-ui-architecture)
 
 ---
 
