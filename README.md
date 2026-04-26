@@ -224,3 +224,125 @@ AddToXP(IncomingXP)   ← always applied, level-up or not
 ```
 
 > **Design note:** XP travels as a Gameplay Event tagged `Attributes_Meta_IncomingXP` rather than a direct function call. This means any ability or system can award XP by dispatching the same event — the AttributeSet handles the rest with no additional wiring. Multi-level-up in a single kill is also handled correctly: rewards are accumulated in a loop over each level gained, so no points are lost if the player gains two or more levels at once.
+
+## 4. Gameplay Ability System
+
+The project uses a custom Ability System Component and a custom base ability
+class that extend Unreal's GAS framework with project-specific input routing,
+ability lifecycle management, and cost/cooldown querying.
+
+---
+
+### 4.1 GAS_AbilitySystemComponent
+
+Derives from `UAbilitySystemComponent`. Centralizes all ability management
+for both Aurora and AI enemies — granting, removing, activating, and routing
+input to the correct ability via gameplay tags.
+
+#### Ability Management
+
+| Function | Description |
+|----------|-------------|
+| `AddCharacterAbilities()` | Grants a list of abilities without activating them — used for player abilities that wait for input |
+| `AddPassiveAbilities()` | Grants passive abilities — these activate immediately and run in the background |
+| `AddCharacterAbilitiesAndActive()` | Grants and immediately activates abilities — used for always-on behaviors like hit react and death |
+| `RemoveAllCharacterAbilities()` | Strips all granted abilities — called on death or game state reset |
+| `RemoveCharacterAbility()` | Removes a single ability by spec handle — used when unequipping a spell |
+| `ForEachAbility()` | Iterates over all granted abilities and fires a delegate — used by the UI to populate the spell menu |
+
+#### Input Routing
+
+Abilities are not bound to keys directly. Instead each ability carries a
+`FGameplayTag` input tag. When a key is pressed or released, the Enhanced
+Input system calls into the ASC which finds and activates the matching ability.
+
+| Function | Description |
+|----------|-------------|
+| `OnAbilityInputPressed(FGameplayTag)` | Finds the ability whose input tag matches and tries to activate it |
+| `OnAbilityInputReleased(FGameplayTag)` | Notifies the active ability that the input was released — used for hold-to-charge abilities |
+| `ActivateAbilityByTag(FGameplayTag)` | Activates an ability directly by its ability tag — used for programmatic triggers |
+
+#### Tag & Spec Helpers
+
+| Function | Description |
+|----------|-------------|
+| `GetAbilityTagFromSpec()` | Reads the ability's own gameplay tag from a spec |
+| `GetInputTagFromSpec()` | Reads the input tag bound to an ability spec — used by the UI to display correct key hints |
+| `GetStatusFromSpec()` | Returns the ability's current status tag (locked, eligible, unlocked, equipped) |
+
+#### Delegates
+
+| Delegate | Fired when |
+|----------|------------|
+| `AbilitiesGivenEvent` | All startup abilities have been granted — the spell menu binds here to know it is safe to populate |
+| `AbilityEquippedEvent` | An ability is equipped or swapped in the spell menu — the UI updates input hint displays |
+
+> **Design note:** Routing input through gameplay tags rather than direct ability
+> references means rebinding a key or swapping an ability requires no code change —
+> only the tag on the spec needs to change. The ASC and the input system never
+> need to know about each other directly.
+
+---
+
+### 4.2 GAS_BaseAbility
+
+Derives from `UGameplayAbility`. Every ability in the project inherits from
+this class. It adds two things on top of the engine base:
+
+- An **`InputTag`** property that the ASC uses to match input events to the
+  correct ability spec at runtime.
+- Helper functions to query cost and cooldown at a given level **without
+  activating** the ability — used by the UI to display accurate mana cost
+  and cooldown values in the spell menu before the player commits to casting.
+
+| Function | Description |
+|----------|-------------|
+| `GetManaCost(float Level)` | Returns the mana cost of this ability at the given level |
+| `GetCooldown(float Level)` | Returns the cooldown duration of this ability at the given level |
+
+---
+
+### 4.3 Aurora's Abilities
+
+All of Aurora's abilities derive from `GAS_BaseAbility`. Each is implemented
+in C++ with Blueprint-exposed properties for tuning.
+
+> ⚠️ **Work in progress** — abilities are functional but still being iterated on.
+
+#### GAS_MeleeAttack_Ability
+
+Aurora's basic melee strike. Plays an attack montage and applies a damage
+Gameplay Effect to enemies within reach. Serves as the baseline combat
+action available at all times regardless of mana.
+
+#### GAS_HoarFrost
+
+Aurora summons a ring of ice spikes around herself. Any enemy that contacts
+the spikes takes damage and receives a **Freeze/Stun** gameplay tag, locking
+them in place and attaching a visual ice mesh to their character. Aurora
+cannot move while the ability is active — movement is blocked for the
+duration of the cast animation via a tag-based movement lock.
+
+Key systems involved: Gameplay Tags (freeze/stun), Niagara (ice ring VFX),
+skeletal mesh attachment (ice on enemy), animation-driven timing.
+
+#### GAS_FrozenSimulacrum
+
+Aurora leaps in the direction of the player's input, leaving behind an icy
+clone of herself at the origin point. The clone has its own health pool and
+can absorb damage as a decoy. Leap direction is calculated from the input
+vector at the moment of activation.
+
+Key systems involved: root motion leap, actor spawning (icy clone),
+independent health component on the clone, input vector sampling.
+
+#### GAS_GlacialCharge
+
+Aurora charges forward, pushing enemies aside and dealing damage. The charge
+uses character movement to traverse any terrain. A persistent **icy trail**
+is left behind that allies can use. Aurora can manually destroy the trail
+at any time to deny enemies the same path.
+
+Key systems involved: movement component override (terrain traversal),
+persistent trail actor with player-triggered destruction, overlap-based
+push impulse on hit enemies.
