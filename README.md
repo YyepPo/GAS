@@ -8,7 +8,23 @@
 ![License](https://img.shields.io/badge/License-MIT-gray?style=flat)
 
 ## Table of Contents
-- [Overview](#Overview)
+## Table of Contents
+
+1. [Overview](3overview)
+2. [Characters](#characters)
+   - 2.1 [GAS\_BaseCharacter](#gas_basecharacter)
+   - 2.2 [GAS\_AuroraCharacter · Player](#gas_auroracharacter--player)
+   - 2.3 [GAS\_Enemy · AI](#gas_enemy--ai)
+3. [Attribute System](#attribute-system)
+   - 3.1 [Primary Attributes](#primary-attributes)
+   - 3.2 [Secondary / Vital Attributes](#secondary--vital-attributes)
+   - 3.3 [Meta Attributes](#meta-attributes)
+   - 3.4 [IncomingDamage Flow](#incomingdamage-flow)
+   - 3.5 [IncomingXP Flow](#incomingxp-flow)
+4. [Gameplay Ability System](#gameplay-ability-system)
+   - 4.1 [GAS\_AbilitySystemComponent](#gas_abilitysystemcomponent)
+   - 4.2 [GAS\_BaseAbility](#gas_baseability)
+   - 4.3 [Aurora's Abilities](#auroras-abilities)
 
 ---
 
@@ -74,7 +90,7 @@ The root of the character hierarchy. Every character — player or AI — derive
 
 ---
 
-### 4.2 GAS_AuroraCharacter · Player
+### 2.2 GAS_AuroraCharacter
 
 The player character. Derives from GAS_BaseCharacter and adds all player-specific concerns: input handling, progression tracking, and player-only UI feedback.
 
@@ -128,7 +144,7 @@ Each enemy has a **health bar widget component** rendered in world space, update
 
 Behavior is driven by a **Behavior Tree**. The enemy's `CharacterClass` tag (from ICombatInterface) determines which ability set and attribute curve they are initialized with at spawn — adding a new enemy type requires no code changes, only data.
 
-## 5. Attribute System
+## 3. Attribute System
 
 All attributes are defined in `GAS_AttributeSetBase`, which derives from `UAttributeSet`. Initial values are applied at spawn via a Gameplay Effect that reads from a **curve table** — no hardcoded defaults anywhere in code.
 
