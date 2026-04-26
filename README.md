@@ -31,3 +31,96 @@ and clarity.
 - **UI architecture**: MVC-style Widget Controller pattern, delegate-driven data binding
 - **Damage flow**: execution calculations, gameplay cues, hit react based on direction ,death
 - **Gameplay Feel**: screen shake, camera lag, Niagara VFX, hit pause, hit indicator widget, reactive hit-flash material effects on characters,knockback on hit
+
+## 2. Characters
+
+All characters share a common base that wires up GAS and combat behavior. The hierarchy keeps shared logic in one place while letting each character type extend only what it needs.
+
+```
+GAS_BaseCharacter
+    ├── GAS_AuroraCharacter   (player)
+    └── GAS_Enemy             (AI)
+```
+
+---
+
+### 2.1 GAS_BaseCharacter
+
+The root of the character hierarchy. Every character — player or AI — derives from this class. It handles two responsibilities at startup: granting the character's default abilities and applying the gameplay effects that initialize their attributes (Health, Mana, etc.) from a data-driven curve table.
+
+#### Implements
+
+| Interface | Purpose |
+|-----------|---------|
+| `IAbilitySystemInterface` | Exposes the ASC to the GAS framework so the engine can resolve ability queries |
+| `ICombatInterface` | Contract for combat-relevant queries shared across all characters |
+
+#### ICombatInterface — functions
+
+| Function | Return | Description |
+|----------|--------|-------------|
+| `GetHitReactMontage(FGameplayTag)` | `UAnimMontage*` | Returns the hit react montage matching the incoming tag — enables directional or type-specific reactions without hardcoded logic |
+| `GetCharacterClass()` | `ECharacterClass` | Returns this character's class enum, used to look up the correct ability set and attribute curve at spawn |
+| `Die(FVector DeathImpulse)` | `void` | Triggers the death sequence; the impulse vector drives directional ragdoll knockback on kill |
+| `GetOnDeathDelegate()` | `FOnDeath&` | Multicast delegate — the XP system, enemy spawner, and UI all bind here to react to death without the character knowing they exist |
+| `GetOnDamageSignature()` | `FOnDamageSignature&` | Delegate broadcast on every hit — drives floating damage numbers and hit markers |
+| `IsDead()` | `bool` | State query used by abilities and AI tasks to skip targeting or animating dead characters |
+| `GetAvatar()` | `AActor*` | Returns the physical world actor — required when the ASC lives on a separate object such as PlayerState |
+
+> **Design note:** The two delegates (`OnDeath`, `OnDamage`) keep the combat interface decoupled from any specific system. Every listener reacts independently without the character needing any knowledge of what is observing it.
+
+---
+
+### 4.2 GAS_AuroraCharacter · Player
+
+The player character. Derives from GAS_BaseCharacter and adds all player-specific concerns: input handling, progression tracking, and player-only UI feedback.
+
+The **ASC and Attribute Set live on the PlayerState**, not the character itself — this ensures they survive death and respawn without being torn down and re-initialized.
+
+#### Implements
+
+| Interface | Purpose |
+|-----------|---------|
+| `IAbilitySystemInterface` | Inherited — fetches ASC from PlayerState |
+| `ICombatInterface` | Inherited — hit react, death, delegates, avatar |
+| `ICharacterInterface` | Player-only contract for progression, rewards, and UI feedback |
+
+#### ICharacterInterface — functions
+
+**Queries**
+
+| Function | Return | Description |
+|----------|--------|-------------|
+| `GetXP()` | `int32` | Returns the player's current total XP |
+| `FindLevelForXP(int32)` | `int32` | Resolves a raw XP value to a character level by looking it up in the level curve table |
+| `GetAttributePoints()` | `int32` | Returns unspent attribute points available in the stat menu |
+| `GetSpellPoints()` | `int32` | Returns unspent spell points available in the ability menu |
+| `GetAttributePointsReward(int32 Level)` | `int32` | Returns how many attribute points to award for reaching a given level |
+| `GetSpellPointsReward(int32 Level)` | `int32` | Returns how many spell points to award for reaching a given level |
+
+**Mutations**
+
+| Function | Return | Description |
+|----------|--------|-------------|
+| `AddToXP(int32)` | `void` | Adds XP after an enemy kill; internally triggers a level-up check |
+| `AddToPlayerLevel(int32)` | `void` | Increments the player level — called by the level-up flow after XP threshold is crossed |
+| `AddToAttributePoints(int32)` | `void` | Grants attribute points as a level-up reward |
+| `AddToSpellPoints(int32)` | `void` | Grants spell points as a level-up reward |
+| `LevelUp()` | `void` | Orchestrates the full level-up sequence — fires the level-up cue, updates UI, grants rewards |
+| `ShowHitMarker()` | `void` | Fires a delegate the HUD listens to, triggering the hit-confirm indicator on a successful hit |
+
+> **Design note:** Separating queries from mutations makes it clear which functions are safe to call from UI (read-only) and which trigger state changes. `FindLevelForXP` being a pure query also means the XP-to-level relationship is fully data-driven via a curve table — no hardcoded level thresholds anywhere.
+
+#### Input
+
+Movement, camera look, and jump are bound here via **Enhanced Input**. Ability inputs are routed through the ASC using gameplay input tags, keeping key bindings fully decoupled from ability logic.
+
+---
+
+### 2.3 GAS_Enemy · AI
+
+All AI-controlled enemies derive from this class. Unlike Aurora, enemies own their ASC directly on the Character — they have no PlayerState and no need for the ASC to outlive the actor.
+
+Each enemy has a **health bar widget component** rendered in world space, updated in real time via an attribute change listener on their ASC.
+
+Behavior is driven by a **Behavior Tree**. The enemy's `CharacterClass` tag (from ICombatInterface) determines which ability set and attribute curve they are initialized with at spawn — adding a new enemy type requires no code changes, only data.
