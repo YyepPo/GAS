@@ -24,6 +24,7 @@
    - 4.1 [GAS\_AbilitySystemComponent](#41-gas_abilitysystemcomponent)
    - 4.2 [GAS\_BaseAbility](#42-gas_baseability)
    - 4.3 [Aurora's Abilities](#43-auroras-abilities)
+5. [UI Arechitecture](#43-ui-architecture)
 
 ---
 
@@ -364,3 +365,43 @@ at any time to deny enemies the same path.
 Key systems involved: movement component override (terrain traversal),
 persistent trail actor with player-triggered destruction, overlap-based
 push impulse on hit enemies.
+
+## 5. UI Architecture
+
+The Widget Controller Pattern
+This project employs a robust UI architecture heavily inspired by the Model-View-Controller (MVC) / Model-View-ViewModel (MVVM) design patterns, specifically tailored for the Unreal Engine Gameplay Ability System (GAS). We refer to this as the Widget Controller Pattern (often associated with the Attribute Pattern).
+
+The core goal of this architecture is to achieve strict separation of concerns, ensuring that the User Interface (UI) is completely decoupled from the core gameplay logic and data models.
+
+The Three Pillars
+Our UI system is broken down into three distinct layers:
+
+- The Model (Data & Logic): This consists of the UAttributeSet, UAbilitySystemComponent (ASC), and APlayerState. These classes handle the pure gameplay math—calculating damage, applying status effects, and storing raw attribute values (like Health and Mana). The Model knows absolutely nothing about the UI.
+- The Controller (The Middleman): The UGAS_WidgetController (and its subclasses like UGAS_OverlayWidgetController). This class acts as the bridge between the complex backend data and the frontend visuals. It holds references to the essential data components (ASC, AttributeSet, PlayerState) and exposes simple, Blueprint-friendly delegates.
+- The View (The UI): The Unreal Motion Graphics (UMG) UUserWidget (e.g., UOverlayWidget). These are the visual blueprints (health bars, mana globes, XP bars). The widgets only know about their assigned WidgetController and simply listen for instructions on when to update.
+How It Eliminates Coupling
+In a naive implementation, a UI Health Bar might use a Tick function to constantly cast to the Player Character, fetch the Attribute Set, and read the Health value. This creates a hard dependency—if the Character class changes or the Attribute Set is moved, the UI breaks. It's also computationally expensive.
+
+The Widget Controller Pattern eliminates this coupling through Event-Driven Architecture:
+
+No Polling: The UI never asks "What is the health right now?". Instead, it waits to be told "The health just changed to X."
+Dependency Inversion: The UUserWidget doesn't need to know what an UAttributeSet or an UAbilitySystemComponent is. It only needs to know about UGAS_WidgetController.
+Clean Blueprint Integration: GAS native delegates are powerful but can be complex to expose to Blueprints. The Widget Controller translates these complex C++ GAS callbacks into simple Dynamic Multicast Delegates that UI designers can easily bind to in the UMG event graph.
+Concrete Example: Updating the Health Bar
+Here is exactly how a change in Health propagates to the screen using this pattern in our project:
+
+1. The Model Changes (Gameplay Logic) The player takes damage. The AbilitySystemComponent modifies the Health attribute within the `GAS_AttributeSetBase`. GAS natively broadcasts an event that this specific attribute has changed.
+
+2. The Controller Listens & Translates In `UGAS_OverlayWidgetController::BindCallbacksToDependencies()`, the controller has already subscribed to the ASC's health change delegate:
+
+`cpp
+AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetGASAS()->GetHealthAttribute()).AddLambda(
+    [this](<const FOnAttributeChangeData& Data>)
+    {
+        // Translate the complex GAS data into a simple float and broadcast it to the UI
+        OnHealthChanged.Broadcast(Data.NewValue); 
+    }
+);`
+3. The View Reacts (UI Blueprint) In the Unreal Editor, the UI Blueprint (e.g., WBP_Overlay) gets its reference to the OverlayWidgetController. In its Event Graph, it binds a custom event to the OnHealthChanged delegate. When the controller broadcasts the new health float, the widget simply updates the visual progress bar fill percent.
+
+Because of this pattern, you can completely delete or replace the UI visuals without touching a single line of gameplay code, and you can refactor gameplay logic without breaking the UI.
