@@ -8,10 +8,9 @@
 ![License](https://img.shields.io/badge/License-MIT-gray?style=flat)
 
 ## Table of Contents
-## Table of Contents
 
 1. [Overview](#Overview)
-2. [Characters](#Characters)
+2. [Characters](#2.1_GAS_BaseCharacter)
    - 2.1 [GAS\_BaseCharacter](#Gas_basecharacter)
    - 2.2 [GAS\_AuroraCharacter · Player](#Gas_auroracharacter--player)
    - 2.3 [GAS\_Enemy · AI](#Gas_enemy--ai)
