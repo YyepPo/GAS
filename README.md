@@ -12,18 +12,18 @@
 1. [Overview](#Overview)
 2. [Characters](#2-characters)
    - 2.1 [GAS\_BaseCharacter](#21-gas_basecharacter)
-   - 2.2 [GAS\_AuroraCharacter · Player](#Gas_auroracharacter--player)
-   - 2.3 [GAS\_Enemy · AI](#Gas_enemy--ai)
-3. [Attribute System](#Attribute-system)
-   - 3.1 [Primary Attributes](#Primary-attributes)
-   - 3.2 [Secondary / Vital Attributes](#Secondary--vital-attributes)
-   - 3.3 [Meta Attributes](#meta-attributes)
-   - 3.4 [IncomingDamage Flow](#incomingdamage-flow)
-   - 3.5 [IncomingXP Flow](#incomingxp-flow)
-4. [Gameplay Ability System](#gameplay-ability-system)
-   - 4.1 [GAS\_AbilitySystemComponent](#gas_abilitysystemcomponent)
-   - 4.2 [GAS\_BaseAbility](#gas_baseability)
-   - 4.3 [Aurora's Abilities](#auroras-abilities)
+   - 2.2 [GAS\_AuroraCharacter · Player](#22-gas_auroracharacter)
+   - 2.3 [GAS\_Enemy · AI](#23-gas_enemy)
+3. [Attribute System](#3-attribute-system)
+   - 3.1 [Primary Attributes](#31-primary-attributes)
+   - 3.2 [Secondary / Vital Attributes](#32-secondary--vital-attributes)
+   - 3.3 [Meta Attributes](#33-meta-attributes)
+   - 3.4 [IncomingDamage Flow](#34-incomingdamage-flow)
+   - 3.5 [IncomingXP Flow](#35-incomingxp-flow)
+4. [Gameplay Ability System](#4-gameplay-ability-system)
+   - 4.1 [GAS\_AbilitySystemComponent](#41-gas_abilitysystemcomponent)
+   - 4.2 [GAS\_BaseAbility](#42-gas_baseability)
+   - 4.3 [Aurora's Abilities](#43-auroras-abilities)
 
 ---
 
@@ -135,7 +135,7 @@ Movement, camera look, and jump are bound here via **Enhanced Input**. Ability i
 
 ---
 
-### 2.3 GAS_Enemy · AI
+### 2.3 GAS_Enemy
 
 All AI-controlled enemies derive from this class. Unlike Aurora, enemies own their ASC directly on the Character — they have no PlayerState and no need for the ASC to outlive the actor.
 
@@ -214,7 +214,7 @@ IncomingDamage set by GE
 
 ---
 
-### 3.5 IncomingXP Flow  (`SendXPEvent` → `HandleIncomingXP`)
+### 3.5 IncomingXP Flow
 
 XP is not applied directly. Instead it travels through the GAS event system to keep the reward flow decoupled from the damage flow.
 
