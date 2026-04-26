@@ -29,5 +29,5 @@ and clarity.
 - **Attribute system**: Health, MaxHealth, Mana, MaxMana, primary & secondary stats
 - **XP & leveling**: kill XP, level-up events, attribute and spell point rewards
 - **UI architecture**: MVC-style Widget Controller pattern, delegate-driven data binding
-- **Damage flow**: execution calculations, gameplay cues, hit react, death
-- **Gameplay Feel**: screen shake, camera lag, Niagara VFX, hit pause, hit indicator widget, reactive hit-flash material effects on characters
+- **Damage flow**: execution calculations, gameplay cues, hit react based on direction ,death
+- **Gameplay Feel**: screen shake, camera lag, Niagara VFX, hit pause, hit indicator widget, reactive hit-flash material effects on characters,knockback on hit
