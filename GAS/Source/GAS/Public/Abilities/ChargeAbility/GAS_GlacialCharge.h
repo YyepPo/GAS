@@ -6,9 +6,11 @@
 #include "GAS_GlacialCharge.generated.h"
 
 class ACharacter;
+class AActor;
 class AGAS_GlacialChargeIceBlock;
 class UAnimMontage;
 class UAbilityTask_ApplyRootMotionConstantForce;
+class UAbilityTask_WaitDelay;
 class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
 class USplineComponent;
@@ -39,6 +41,11 @@ class GAS_API UGAS_GlacialCharge : public UGAS_BaseAbility
 public:
 	UGAS_GlacialCharge();
 
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void ApplyDamageEffect(AActor* Actor);
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void OnChargeStarts();
+	
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -51,14 +58,24 @@ private:
 	bool BuildDashSpline(ACharacter* Character, const FVector& DashDirection);
 	void BuildDashSegments();
 	void BuildIceBlockTransforms();
+	void StartChargeExecution();
 	void StartNextDashSegment();
 	void StartTrailSpawning();
 	void SpawnNextIceBlock();
+	void StartChargeHitSweep();
+	void UpdateChargeHitSweep();
+	void HandleChargeSweepHit(AActor* HitActor, const FVector& SweepOrigin, const FVector& DashForward, float TraceAngleDegrees);
+	bool ResolveIceBlockSpawnTransform(const FTransform& IntendedTransform, FTransform& OutSpawnTransform) const;
+	void ReleaseChargeControlNearSplineEnd();
 	void StartSplineCorrection();
 	void UpdateSplineCorrection();
 	void SnapCharacterToSplineDistance(float DistanceAlongSpline, bool bForceSnap);
 	void ConfigureOwnerTrailCollision(bool bEnableIgnore);
+	bool IsValidChargeTarget(AActor* CandidateActor) const;
+	float GetActorFeetZ(const AActor* Actor) const;
+	float GetIceBlockWorldHalfHeight(const FTransform& BlockTransform) const;
 	bool TraceGroundSample(ACharacter* Character, const FVector& SamplePoint, FHitResult& OutHit) const;
+	FVector ComputeSideKnockbackDirection(const AActor* HitActor, const FVector& DashForward, float TraceAngleDegrees);
 	FVector GetDashDirection(const ACharacter* Character) const;
 	FVector SampleSurfaceNormalAtDistance(float DistanceAlongSpline) const;
 	FTransform MakeIceBlockTransform(float DistanceAlongSpline) const;
@@ -71,6 +88,9 @@ private:
 	UFUNCTION()
 	void OnMontageTaskFinished();
 
+	UFUNCTION()
+	void OnChargeStartupDelayFinished();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
 	float DashDuration = 1.0f;
 
@@ -79,6 +99,36 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge")
 	TObjectPtr<UAnimMontage> ChargeMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge")
+	float ChargeStartupDelay = 0.46f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepArcDegrees = 180.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepAngleStepDegrees = 30.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepTraceRange = 180.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepTraceInterval = 0.03f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepTraceForwardOffset = 40.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float SweepTraceHeightOffset = 45.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float EnemyKnockbackForce = 850.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float EnemyForwardKnockbackBlend = 0.2f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Collision Sweep")
+	float EnemyKnockbackUpForce = 120.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge|Path")
 	int32 TraceCount = 10;
@@ -120,10 +170,22 @@ private:
 	float BlockSpawnLeadDistance = 100.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge|Trail")
+	float IceGroundTraceStartHeight = 220.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Trail")
+	float IceGroundTraceDepth = 500.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Trail")
+	float EnemyFootClearance = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Trail")
 	TSubclassOf<AGAS_GlacialChargeIceBlock> IceBlockClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge|Spline Follow")
 	float SplineCorrectionInterval = 0.016f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Charge|Spline Follow")
+	float EndSplineReleaseDistance = 75.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Charge|Debug")
 	bool bDrawDebug = false;
@@ -137,7 +199,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> ActiveMontageTask;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_WaitDelay> ActiveChargeDelayTask;
+
 	FTimerHandle IceSpawnTimerHandle;
+	FTimerHandle ChargeHitSweepTimerHandle;
 	FTimerHandle SplineCorrectionTimerHandle;
 
 	TArray<FGlacialChargeDashSegment> DashSegments;
@@ -154,9 +220,13 @@ private:
 	float DashSplineVerticalOffset = 0.f;
 	float EffectiveIceSpawnInterval = 0.f;
 	float DashStartTimeSeconds = 0.f;
+	FVector CachedDashDirection = FVector::ForwardVector;
+	TSet<TWeakObjectPtr<AActor>> AffectedChargeTargets;
 	EMovementMode SavedMovementMode = MOVE_Walking;
 	uint8 SavedCustomMovementMode = 0;
 	bool bHasSavedMovementMode = false;
 	bool bHasCleanedUp = false;
+	bool bHasReleasedNearEndControl = false;
+	bool bUseRightSideForCenterHit = true;
 	bool bDashInProgress = false;
 };

@@ -45,7 +45,7 @@ void AGAS_GlacialChargeIceBlock::BeginPlay()
 	Super::BeginPlay();
 
 	ConfigureCollisionForDashOwner();
-	SetLifeSpan(LifeSeconds);
+	//SetLifeSpan(LifeSeconds);
 }
 
 void AGAS_GlacialChargeIceBlock::ConfigureCollisionForDashOwner() const
