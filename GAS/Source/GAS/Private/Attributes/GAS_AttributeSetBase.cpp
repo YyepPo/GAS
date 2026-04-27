@@ -132,7 +132,7 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 		// Handle hit react
 		else
 		{
-			if (Props.TargetCharacter->Implements<UCombatInterface>())
+			if (Props.TargetCharacter && Props.TargetCharacter->Implements<UCombatInterface>())
 			{
 				// Knockback
 				const FVector KnockbackForce = UGAS_FunctionLibrary::GetKnockbackForce(Props.EffectContextHandle);

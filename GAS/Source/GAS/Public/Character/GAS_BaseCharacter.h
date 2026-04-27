@@ -40,6 +40,7 @@ public:
 	virtual FOnDamageSignature& GetOnDamageSignature() override; 
 	virtual bool IsDead_Implementation() const override;
 	virtual AActor* GetAvatar_Implementation() override;
+	virtual UAnimMontage* GetStunMontage_Implementation() override;
 	/** ICombatInterface END*/
 	
 	FOnDeath OnDeath;
@@ -49,6 +50,9 @@ public:
 
 	UFUNCTION(BlueprintCallable,BlueprintPure)
 	UAttributeSet* GetAttributeSet() const {return AttributeSet;}
+
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	bool GetIsStunned() const {return bIsStunned;}
 	
 protected:
 
@@ -74,17 +78,20 @@ protected:
 	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;
 	void AddCharacterAbilities();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|Stun")
+	UAnimMontage* StunMontage;
+	
 	///
 	// Hit react montages ,4 sides
 	///
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|HitReact")
 	UAnimMontage* FrontHitReactMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|HitReactt")
 	UAnimMontage* BackHitReactMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|HitReact")
 	UAnimMontage* LeftHitReactMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|HitReact")
 	UAnimMontage* RightHitReactMontage;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GAS", meta=(AllowPrivateAccess="true"))
@@ -92,10 +99,29 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Character Class")
 	ECharacterClass CharacterClass;
-
-
+	
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	///
+	/// Stun
+	///
+	
+	bool bIsStunned = false;
+	UPROPERTY(EditAnywhere, Category = "Stun")
+	UParticleSystem* StunLoopParticle;
+	UPROPERTY(EditAnywhere, Category = "Stun")
+	UParticleSystem* StunStartParticle;
+	UPROPERTY(EditAnywhere, Category = "Stun")
+	UParticleSystem* StunStopParticle;
+	
+	UPROPERTY()
+	UParticleSystemComponent* StunParticleComp;
+	UPROPERTY()
+	UParticleSystemComponent* StunLoopParticleComp;
+	UPROPERTY()
+	UParticleSystemComponent* StunStopParticleComp;
+
 private:
 	
 	

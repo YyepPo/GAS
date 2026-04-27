@@ -128,6 +128,11 @@ AActor* AGAS_BaseCharacter::GetAvatar_Implementation()
 	return this;
 }
 
+UAnimMontage* AGAS_BaseCharacter::GetStunMontage_Implementation()
+{
+	return StunMontage;
+}
+
 /// 
 // ICombatInterface Functions END
 ///

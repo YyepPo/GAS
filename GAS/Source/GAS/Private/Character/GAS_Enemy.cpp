@@ -8,6 +8,8 @@
 #include "Attributes/GAS_AttributeSetBase.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "UI/Widget/OverlayWidget.h"
 
 AGAS_Enemy::AGAS_Enemy()
@@ -31,12 +33,22 @@ int32 AGAS_Enemy::GetPlayerLevel_Implementation()
 	return Level;
 }
 
+void AGAS_Enemy::Die(const FVector& DeathImpulse)
+{
+	Super::Die(DeathImpulse);
+	if (HealthWidgetComponent)
+	{
+		HealthWidgetComponent->DestroyComponent();
+	}
+}
+
 void AGAS_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	InitAbilityInfo();
 	ApplyDefaultAttributes();
+	AddCharacterAbilities();
 
 	UOverlayWidget* HealthWidget = Cast<UOverlayWidget>(HealthWidgetComponent->GetWidget());
 	if (HealthWidget)
@@ -85,6 +97,8 @@ void AGAS_Enemy::ApplyDefaultAttributes() const
 
 void AGAS_Enemy::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
+	bIsStunned = NewCount > 0;
+
 	if (NewCount > 0)
 	{
 		// Stop movement
@@ -94,15 +108,31 @@ void AGAS_Enemy::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 		// Stop any active abilities
 		AbilitySystemComponent->CancelAllAbilities();
 
-		// Play stun gameplay cue
-		FGameplayCueParameters CueParams;
-		CueParams.Location = GetActorLocation();
-		CueParams.Instigator = this;
-		AbilitySystemComponent->AddGameplayCue(
-			FGameplayTag::RequestGameplayTag("GameplayCue.Debuff.Stun"),
-			CueParams
-		);	
+		if (StunStartParticle)
+		{
+			UGameplayStatics::SpawnEmitterAttached(StunStartParticle,GetMesh(),TEXT("FX_Stun"));
+		}
+		
+		if (StunLoopParticle)
+		{
+			StunParticleComp = UGameplayStatics::SpawnEmitterAttached(StunLoopParticle,GetMesh(),TEXT("FX_Stun"));
+		}
+
 	}
+	else if (NewCount == 0)
+	{
+		if (StunParticleComp)
+		{
+			StunParticleComp->DestroyComponent();
+		}
+
+		if (StunStopParticle)
+		{
+			UGameplayStatics::SpawnEmitterAttached(StunStopParticle,GetMesh(),TEXT("FX_Stun"));
+		}
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+
+	
+	UE_LOG(LogTemp,Warning,TEXT("StunTagChanged: NewCount=%d"), NewCount);
 }
-
-

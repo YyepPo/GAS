@@ -60,9 +60,13 @@ FGameplayEffectContextHandle UGAS_FunctionLibrary::ApplyDamageEffect(
 	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(DamageEffectParams.DamageGameplayEffectClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
 
 	AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
-	
-	DamageEffectParams.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
-	return EffectContexthandle;
+
+	if (SpecHandle.Data.IsValid())
+	{
+		DamageEffectParams.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+		return EffectContexthandle;	
+	}
+	return FGameplayEffectContextHandle();
 }
 
 FGameplayEffectSpecHandle UGAS_FunctionLibrary::AssignTagSetByCallerMagnitude(
