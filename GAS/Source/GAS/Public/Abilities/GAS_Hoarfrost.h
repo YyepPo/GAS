@@ -22,10 +22,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* WindParticle;
-	
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UCameraShakeBase> HoarfrostCameraShake;
-	
 	UFUNCTION()
 	void OnMontageCompleted();
 };

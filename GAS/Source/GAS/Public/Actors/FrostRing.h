@@ -30,6 +30,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	int32 SpikeCount = 8;
+
+	UPROPERTY(EditAnywhere)
+	float SpikeLifetime = 5.f;
 	
 	UPROPERTY(EditAnywhere)
 	float Radius = 150.f;

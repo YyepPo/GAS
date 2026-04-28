@@ -17,6 +17,7 @@ void AFrostRing::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnIceSpikes();
+	SetLifeSpan(SpikeLifetime + 0.5);
 }
 
 void AFrostRing::SpawnIceSpikes()
@@ -69,6 +70,7 @@ void AFrostRing::SpawnIceSpikes()
 		{
 			Spike->SetInstigator(GetInstigator());
 			Spike->SetAbilityLevel(1);
+			Spike->SetLifeSpan(SpikeLifetime);
 		}
 	}
 }

@@ -51,6 +51,15 @@ UAnimMontage* UGAS_FrozenSimulacrum::GetMontageForDirection(float ForwardDot, fl
 {
 	const float DiagonalThreshold = 0.5f;
 
+	UE_LOG(LogTemp,Warning,TEXT("Forward dot %f, right dot %f"),ForwardDot,RightDot);
+
+	const bool IsForwardZero = FMath::IsNearlyEqual(ForwardDot, 0,00);
+	const bool IsRightZero = FMath::IsNearlyEqual(RightDot, 0,00);
+	if (IsForwardZero && IsRightZero)
+	{
+		return Montages.Fwd;
+	}
+	
 	if (ForwardDot > DiagonalThreshold)
 	{
 		if (RightDot > DiagonalThreshold)       return Montages.FwdRight;

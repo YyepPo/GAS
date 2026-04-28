@@ -1,4 +1,6 @@
 ﻿#include "Abilities/GAS_Hoarfrost.h"
+
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -7,51 +9,44 @@
 
 UGAS_Hoarfrost::UGAS_Hoarfrost()
 {
-	
 }
 
 void UGAS_Hoarfrost::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                     const FGameplayAbilityActorInfo* ActorInfo,
+                                     const FGameplayAbilityActivationInfo ActivationInfo,
                                      const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo,true,false);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
 
 	UGAS_FunctionLibrary::ApplyBlockMovementTag(GetAbilitySystemComponentFromActorInfo());
-	
+
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (Character)
 	{
 		Character->GetCharacterMovement()->DisableMovement();
 	}
-	
+
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, HoarfrostMontage);
+
+	GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(
+		FGameplayTag::RequestGameplayTag("GameplayCue.Ability.Hoarfrost"));
 
 	MontageTask->OnCompleted.AddDynamic(this, &UGAS_Hoarfrost::OnMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UGAS_Hoarfrost::OnMontageCompleted);
 	MontageTask->ReadyForActivation();
 
-	if (HoarfrostMontage)
-	{
-		APlayerController* Controller =	Cast<APlayerController>(
-		Cast<ACharacter>(GetAvatarActorFromActorInfo())->GetController());
-		if (Controller)
-		{
-			Controller->ClientStartCameraShake(HoarfrostCameraShake);
-		}	
-	}
-	
 	if (WindParticle)
 	{
 		FVector SpawnLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
 		SpawnLocation.Z -= 25.f;
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),WindParticle,SpawnLocation,FRotator(0,0,0));
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WindParticle, SpawnLocation, FRotator(0, 0, 0));
 	}
 }
 
@@ -66,5 +61,5 @@ void UGAS_Hoarfrost::OnMontageCompleted()
 
 	UGAS_FunctionLibrary::RemoveBlockMovementTag(GetAbilitySystemComponentFromActorInfo());
 
-	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
