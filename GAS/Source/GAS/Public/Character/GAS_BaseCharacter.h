@@ -71,7 +71,9 @@ protected:
 	TSubclassOf<UGameplayEffect> DefaultSecondaryAttributeClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
 	TSubclassOf<UGameplayEffect> DefaultVitalAttributeClass;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Default Attributes")
+	TSubclassOf<UGameplayEffect> DefaultVitalRegenClass;
+	
 	virtual void InitAbilityInfo();
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyDefaultAttributes() const;
