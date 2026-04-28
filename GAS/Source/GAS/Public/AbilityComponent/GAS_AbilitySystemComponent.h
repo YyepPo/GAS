@@ -55,6 +55,9 @@ public:
 	void OnAbilityInputReleased(FGameplayTag Tag);
 	
 	UFUNCTION(BlueprintCallable)
+	void OnAbilityInputHeld(FGameplayTag Tag);
+	
+	UFUNCTION(BlueprintCallable)
 	void ActivateAbilityByTag(FGameplayTag AbilityTag);
 	
 	FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);

@@ -9,6 +9,7 @@
 #include "GAS_GameplayTags.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Data/LevelUpConfig.h"
+#include "Input/GAS_AbilityEnhancedInput.h"
 #include "Player/GAS_PlayerState.h"
 #include "UI/GAS_HUD.h"
 
@@ -46,7 +47,52 @@ void AGAS_AuroraCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGAS_AuroraCharacter::Look);
+		
+		UGAS_AbilityEnhancedInput* AbilityInputComponent =	CastChecked<UGAS_AbilityEnhancedInput>(EnhancedInputComponent);
+		if (AbilityInputComponent)
+		{
+			AbilityInputComponent->BindAbilityAction(InputConfig,this,&ThisClass::AbilityInputPressed,)
+		}
 	}
+}
+
+void AGAS_AuroraCharacter::AbilityInputPressed(const FGameplayTag Tag)
+{
+	if (AbilitySystemComponent == nullptr)
+	{
+		return;
+	}
+	
+	UGAS_AbilitySystemComponent* GAS_ASC = Cast<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	check(GAS_ASC);
+	
+	GAS_ASC->OnAbilityInputPressed(Tag);
+}
+
+void AGAS_AuroraCharacter::AbilityInputReleased(const FGameplayTag Tag)
+{
+	if (AbilitySystemComponent == nullptr)
+	{
+		return;
+	}
+	
+	UGAS_AbilitySystemComponent* GAS_ASC = Cast<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	check(GAS_ASC);
+	
+	GAS_ASC->OnAbilityInputReleased(Tag);
+}
+
+void AGAS_AuroraCharacter::AbilityInputHeld(const FGameplayTag Tag)
+{
+	if (AbilitySystemComponent == nullptr)
+	{
+		return;
+	}
+	
+	UGAS_AbilitySystemComponent* GAS_ASC = Cast<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	check(GAS_ASC);
+	
+	GAS_ASC->OnAbilityInputHe(Tag);
 }
 
 void AGAS_AuroraCharacter::Move(const FInputActionValue& Value)

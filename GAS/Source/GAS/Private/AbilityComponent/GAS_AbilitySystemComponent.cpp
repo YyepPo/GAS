@@ -117,17 +117,14 @@ void UGAS_AbilitySystemComponent::OnAbilityInputPressed(FGameplayTag Tag)
 	
 	ABILITYLIST_SCOPE_LOCK();
 
-	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag))
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive() == false)
 		{
 			AbilitySpecInputPressed(AbilitySpec);
-			if (AbilitySpec.IsActive())
-			{
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed,
-					AbilitySpec.Handle,
-					AbilitySpec.ActivationInfo.GetActivationPredictionKey());
-			}
+			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed,
+				AbilitySpec.Handle,
+				AbilitySpec.ActivationInfo.GetActivationPredictionKey());
 		}
 	}
 }
@@ -135,13 +132,31 @@ void UGAS_AbilitySystemComponent::OnAbilityInputPressed(FGameplayTag Tag)
 void UGAS_AbilitySystemComponent::OnAbilityInputReleased(FGameplayTag Tag)
 {
 	if (!Tag.IsValid()) return;
-	FScopedAbilityListLock ActiveScopeLoc(*this);
+	
+	ABILITYLIST_SCOPE_LOCK();
+	
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.DynamicAbilityTags.HasTagExact(Tag) && AbilitySpec.IsActive())
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive())
 		{
 			AbilitySpecInputReleased(AbilitySpec);
 			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+		}
+	}
+}
+
+void UGAS_AbilitySystemComponent::OnAbilityInputHeld(FGameplayTag Tag)
+{
+	if (!Tag.IsValid()) return;
+	
+	ABILITYLIST_SCOPE_LOCK();
+	
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && !AbilitySpec.IsActive())
+		{
+			AbilitySpecInputReleased(AbilitySpec);
+			TryActivateAbility(AbilitySpec.Handle);
 		}
 	}
 }
@@ -153,6 +168,8 @@ void UGAS_AbilitySystemComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 		return;
 	}
 
+	ABILITYLIST_SCOPE_LOCK();
+	
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if(AbilitySpec.Ability->AbilityTags.HasTagExact(AbilityTag))
@@ -188,7 +205,7 @@ FGameplayTag UGAS_AbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayA
 
 FGameplayTag UGAS_AbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
 {
-	for (FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+	for (FGameplayTag Tag : AbilitySpec.GetDynamicSpecSourceTags())
 	{
 		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("InputTag"))))
 		{

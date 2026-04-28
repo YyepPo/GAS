@@ -5,8 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "GAS_BaseCharacter.h"
+#include "Data/AbilityInputConfig.h"
 #include "Interface/CharacterInterface.h"
 #include "GAS_AuroraCharacter.generated.h"
+
+class UAbilityInputConfig;
 
 UCLASS()
 class GAS_API AGAS_AuroraCharacter : public AGAS_BaseCharacter, public ICharacterInterface
@@ -70,7 +73,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Camera Shake")
 	TSubclassOf<class UCameraShakeBase> HitCameraShake;
 	
+	UPROPERTY(EditAnywhere)
+	UAbilityInputConfig InputConfig;
+	
+	UFUNCTION()
+	void AbilityInputPressed(const FGameplayTag Tag);
+	UFUNCTION()
+	void AbilityInputReleased(const FGameplayTag Tag);
+	UFUNCTION()
+	void AbilityInputHeld(const FGameplayTag Tag);
 public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
 };
