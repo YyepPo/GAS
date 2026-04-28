@@ -161,10 +161,8 @@ void AGAS_BaseCharacter::ApplyDefaultAttributes() const
 	ApplyGameplayEffectToSelf(DefaultPrimaryAttributeClass,1);
 	ApplyGameplayEffectToSelf(DefaultSecondaryAttributeClass,1);
 	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
-	if (DefaultPrimaryAttributeClass)
-	{
-		ApplyGameplayEffectToSelf(DefaultVitalRegenClass,1);
-	}
+	ApplyGameplayEffectToSelf(DefaultVitalRegenClass,1);
+	
 }
 
 void AGAS_BaseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const
@@ -175,7 +173,11 @@ void AGAS_BaseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> 
 		return;
 	}
 	
-	check(AttributeClass);
+	if (AttributeClass == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("GAS_BaseCharacter::ApplyGameplayEffectToSelf: Attribute class is null"));
+		return;
+	}
 
 	FGameplayEffectContextHandle ContextHandler = GetAbilitySystemComponent()->MakeEffectContext();
 	ContextHandler.AddSourceObject(this);	

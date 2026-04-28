@@ -13,6 +13,7 @@ void UGAS_OverlayWidgetController::BroadcastInitialValues()
 	OnMaxHealthChanged.Broadcast(GetGASAS()->GetMaxHealth());
 	OnManaChanged.Broadcast(GetGASAS()->GetMana());
 	OnMaxManaChanged.Broadcast(GetGASAS()->GetMaxMana());
+	OnPlayerLevelChangedDelegate.Broadcast(0,false);
 }
 
 void UGAS_OverlayWidgetController::BindCallbacksToDependencies()
