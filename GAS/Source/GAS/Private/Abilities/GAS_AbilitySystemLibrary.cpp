@@ -1,5 +1,9 @@
 ﻿#include "GAS_AbilitySystemLibrary.h"
 #include "GAS_GameplayTags.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/GAS_PlayerState.h"
+#include "UI/GAS_HUD.h"
+#include "UI/WidgetController/GAS_WidgetController.h"
 
 FGameplayTag UGAS_AbilitySystemLibrary::CalculateHitDirection(AActor* SourceCharacter,AActor* TargetActor)
 {
@@ -35,40 +39,6 @@ FGameplayTag UGAS_AbilitySystemLibrary::CalculateHitDirection(AActor* SourceChar
 	}
 
 	return HitDirectionTag;
-	
-	/*// Calculate direction from attacker to target
-	const FVector DirectionToAttacker = (SourceCharacter->GetActorLocation() 
-									   - TargetActor->GetActorLocation()).GetSafeNormal2D();
-
-	const FVector VictimForward = TargetActor->GetActorForwardVector();
-
-	// Better & cleaner way to get signed angle (-180 to 180)
-	const float Dot = FVector::DotProduct(VictimForward, DirectionToAttacker);
-	const float Angle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(Dot, -1.0f, 1.0f)));
-
-	// Determine quadrant using cross product for sign
-	const float CrossZ = FVector::CrossProduct(VictimForward, DirectionToAttacker).Z;
-
-	FGameplayTag HitDirectionTag;
-
-	if (FMath::Abs(Angle) <= 45.0f)
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Front;
-	}
-	else if (FMath::Abs(Angle) >= 135.0f)
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Back;
-	}
-	else if (CrossZ > 0.0f)   // Note: sign depends on your coordinate system
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Right;
-	}
-	else
-	{
-		HitDirectionTag = FGAS_GameplayTags::Get().Effects_HitReact_Left;
-	}
-
-	return HitDirectionTag;*/
 }
 
 float UGAS_AbilitySystemLibrary::GetDirectionToTargetInDegress(const FVector& ActorForwardVector,
@@ -83,4 +53,27 @@ float UGAS_AbilitySystemLibrary::GetDirectionToTargetInDegress(const FVector& Ac
 	(CrossProduct.Z < 0) ? Acos *= -1 : Acos *= 1;
 
 	return Acos;
+}
+
+UGAS_AttributeWidgetController* UGAS_AbilitySystemLibrary::GetAttributeWidgetController(
+	const UObject* WorldContextObject)
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldContextObject,0);
+	if (PlayerController == nullptr)
+	{
+		return nullptr;
+	}
+	
+	AGAS_HUD* Hud = Cast<AGAS_HUD>(PlayerController->GetHUD());
+	if (Hud == nullptr)
+	{
+		return nullptr;
+	}
+		
+	AGAS_PlayerState* PlayerState = PlayerController->GetPlayerState<AGAS_PlayerState>();
+	UAbilitySystemComponent* AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
+	UAttributeSet* AttributeSet = PlayerState->GetAttributeSet();
+	const FGAS_WidgetControllerParams Params (PlayerController, PlayerState,AbilitySystemComponent,AttributeSet);
+	
+	return Hud->GetAttributeWidgetController(Params);
 }

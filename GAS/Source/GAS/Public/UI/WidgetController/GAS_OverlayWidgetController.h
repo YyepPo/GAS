@@ -64,8 +64,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Level")
 	FOnLevelChangedSignature OnPlayerLevelChangedDelegate;
-
-
+	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Hit Marker")
 	FOnHitMarker OnHitMarkerDelegate;
 	

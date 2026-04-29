@@ -4,6 +4,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "GAS_AbilitySystemLibrary.generated.h"
 
+class UGAS_AttributeWidgetController;
+
 UCLASS()
 class GAS_API UGAS_AbilitySystemLibrary : public UBlueprintFunctionLibrary
 {
@@ -16,4 +18,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static float GetDirectionToTargetInDegress(const FVector& ActorForwardVector,const FVector& DirectionToTarget);
+
+	UFUNCTION(BlueprintCallable)
+	static UGAS_AttributeWidgetController* GetAttributeWidgetController(const UObject* WorldContextObject);
 };

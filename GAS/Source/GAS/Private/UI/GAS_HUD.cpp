@@ -1,5 +1,6 @@
 ﻿#include "UI/GAS_HUD.h"
 #include "UI/Widget/OverlayWidget.h"
+#include "UI/WidgetController/GAS_AttributeWidgetController.h"
 #include "UI/WidgetController/GAS_OverlayWidgetController.h"
 
 void AGAS_HUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
@@ -27,4 +28,15 @@ UGAS_OverlayWidgetController* AGAS_HUD::GetOverlayWidgetController(const FGAS_Wi
 		OverlayWidgetController->BindCallbacksToDependencies();
 	}
 	return OverlayWidgetController;
+}
+
+UGAS_AttributeWidgetController* AGAS_HUD::GetAttributeWidgetController(const FGAS_WidgetControllerParams& WCParams)
+{
+	if (AttributeWidgetController == nullptr)
+	{
+		AttributeWidgetController = NewObject<UGAS_AttributeWidgetController>(this,AttributeWidgetControllerClass);
+		AttributeWidgetController->SetWidgetControllerParams(WCParams);
+		AttributeWidgetController->BindCallbacksToDependencies();
+	}
+	return AttributeWidgetController;
 }
