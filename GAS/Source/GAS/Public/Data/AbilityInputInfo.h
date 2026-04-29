@@ -1,14 +1,15 @@
-﻿#pragma once
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "InputAction.h"
 #include "Engine/DataAsset.h"
-#include "AbilityInputConfig.generated.h"
-
-class UInputAction;
+#include "AbilityInputInfo.generated.h"
 
 USTRUCT(Blueprintable)
-struct FAbilityInputConfig
+struct FAbilityInputStruct
 {
 	GENERATED_BODY()
 	
@@ -20,13 +21,14 @@ struct FAbilityInputConfig
 	
 };
 
+
 UCLASS()
-class GAS_API UAbilityInputConfig : public UDataAsset
+class GAS_API UAbilityInputInfo : public UDataAsset
 {
 	GENERATED_BODY()
-	
-public:
-	
+
+	public:
+
 	UPROPERTY(EditAnywhere)
-	FAbilityInputConfig AbilityInputConfig;
+	TArray<FAbilityInputStruct> AbilityInputList;
 };

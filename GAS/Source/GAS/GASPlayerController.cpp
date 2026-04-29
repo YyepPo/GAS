@@ -10,7 +10,9 @@
 #include "Blueprint/UserWidget.h"
 #include "GAS.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
+#include "Input/GAS_AbilityEnhancedInput.h"
 #include "Widgets/Input/SVirtualJoystick.h"
+#include "Player/GAS_PlayerState.h"
 
 void AGASPlayerController::BeginPlay()
 {
@@ -32,8 +34,9 @@ void AGASPlayerController::BeginPlay()
 			UE_LOG(LogGAS, Error, TEXT("Could not spawn mobile controls widget."));
 
 		}
-
 	}
+
+	GetASC();
 }
 
 void AGASPlayerController::SetupInputComponent()
@@ -61,6 +64,20 @@ void AGASPlayerController::SetupInputComponent()
 			}
 		}
 	}
+	
+	// Add this log to confirm what class is actually being created
+	UE_LOG(LogTemp, Warning, TEXT("aaaaaaaa -InputComponent class: %s"), 
+		*InputComponent->GetClass()->GetName());
+
+	if(UGAS_AbilityEnhancedInput* GASInputComp = Cast<UGAS_AbilityEnhancedInput>(InputComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("aaaaaaaa Cast SUCCEEDED")); // Will this print?
+		GASInputComp->BindAbilityAction(InputConfig,this,&AGASPlayerController::AbilityInputPressed,&AGASPlayerController::AbilityInputReleased,&AGASPlayerController::AbilityInputHeld);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("aaaaaaaa Cast FAILED - wrong input component class"));
+	}
 }
 
 
@@ -74,9 +91,24 @@ bool AGASPlayerController::ShouldUseTouchControls() const
 
 UGAS_AbilitySystemComponent* AGASPlayerController::GetASC()
 {
-	if (AuraAbilitySystemComponent == nullptr)
+	if (AuroraAbilitySystemComponent == nullptr)
 	{
-		AuraAbilitySystemComponent = Cast<UGAS_AbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+		AuroraAbilitySystemComponent = Cast<UGAS_AbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
 	}
-	return AuraAbilitySystemComponent;
+	return AuroraAbilitySystemComponent;
+}
+
+void AGASPlayerController::AbilityInputPressed(const FGameplayTag Tag)
+{
+	check(AuroraAbilitySystemComponent);
+
+	AuroraAbilitySystemComponent->ActivateAbilityByTag(Tag);
+}
+
+void AGASPlayerController::AbilityInputReleased(const FGameplayTag Tag)
+{
+}
+
+void AGASPlayerController::AbilityInputHeld(const FGameplayTag Tag)
+{
 }

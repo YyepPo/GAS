@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Data/AbilityInputInfo.h"
 #include "GASPlayerController.generated.h"
 
+struct FGameplayTag;
 class UGAS_AbilitySystemComponent;
 class UInputMappingContext;
 class UUserWidget;
@@ -53,9 +55,17 @@ protected:
 private:
 
 	UPROPERTY()
-	TObjectPtr<UGAS_AbilitySystemComponent> AuraAbilitySystemComponent;
+	TObjectPtr<UGAS_AbilitySystemComponent> AuroraAbilitySystemComponent;
 
 	UGAS_AbilitySystemComponent* GetASC();
 
+	UPROPERTY(EditAnywhere)
+	UAbilityInputInfo* InputConfig;
+
 	
+	void AbilityInputPressed(const FGameplayTag Tag);
+	UFUNCTION()
+	void AbilityInputReleased(const FGameplayTag Tag);
+	UFUNCTION()
+	void AbilityInputHeld(const FGameplayTag Tag);
 };

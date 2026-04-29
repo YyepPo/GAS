@@ -172,7 +172,7 @@ void UGAS_AbilitySystemComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 	
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if(AbilitySpec.Ability->AbilityTags.HasTagExact(AbilityTag))
+		if(AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(AbilityTag))
 		{
 			if(AbilitySpec.IsActive() == false)
 			{

@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "EnhancedInputComponent.h"
-#include "Data/AbilityInputConfig.h"
+#include "Data/AbilityInputInfo.h"
 #include "GAS_AbilityEnhancedInput.generated.h"
 
 
-class UAbilityInputConfig;
+class UAbilityInputInfo;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAS_API UGAS_AbilityEnhancedInput : public UEnhancedInputComponent
@@ -18,17 +18,43 @@ class GAS_API UGAS_AbilityEnhancedInput : public UEnhancedInputComponent
 public:
 
 	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
-	void BindAbilityAction(const UAbilityInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc);
+	void BindAbilityAction(const UAbilityInputInfo* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc);
 	
 };
 
 template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
-void UGAS_AbilityEnhancedInput::BindAbilityAction(const UAbilityInputConfig* InputConfig, UserClass* Object,
+void UGAS_AbilityEnhancedInput::BindAbilityAction(const UAbilityInputInfo* InputConfig, UserClass* Object,
 	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc)
 {
 	check(InputConfig);
 
-	for (FAbilityInputConfig Input : InputConfig->AbilityInputConfig)
+
+	// Add this
+	UE_LOG(LogTemp, Warning, TEXT("bbbbbbb AbilityInputList count: %d"), InputConfig->AbilityInputList.Num());
+
+	for (FAbilityInputStruct Input : InputConfig->AbilityInputList)
+	{
+		// Add this
+		UE_LOG(LogTemp, Warning, TEXT("Checking Input - Action: %s | Tag: %s"),
+			Input.InputAction ? *Input.InputAction->GetName() : TEXT("NULL"),
+			*Input.AbilityInputTag.ToString());
+
+		if (Input.InputAction != nullptr && Input.AbilityInputTag.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("bbbbbbb Binding action: %s"), *Input.InputAction->GetName());
+            
+			if (PressedFunc != nullptr)
+			{
+				BindAction(Input.InputAction, ETriggerEvent::Started, Object, PressedFunc, Input.AbilityInputTag);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("bbbbbbb SKIPPED - InputAction is null or Tag is invalid"));
+		}
+	}
+	
+	/*for (FAbilityInputStruct Input : InputConfig->AbilityInputList)
 	{
 		if (Input.InputAction != nullptr && Input.AbilityInputTag.IsValid())
 		{
@@ -42,10 +68,10 @@ void UGAS_AbilityEnhancedInput::BindAbilityAction(const UAbilityInputConfig* Inp
 				BindAction(Input.InputAction, ETriggerEvent::Completed,Object,ReleasedFunc,Input.AbilityInputTag);
 			}
 			
-			if (HeldFunc != nullptr)
-			{
-				BindAction(Input.InputAction,ETriggerEvent::Triggered,Object,HeldFunc,Input.AbilityInputTag);
-			}
+			//if (HeldFunc != nullptr)
+			//{
+			//	BindAction(Input.InputAction,ETriggerEvent::Triggered,Object,HeldFunc,Input.AbilityInputTag);
+			//}
 		}
-	}
+	}*/
 }
