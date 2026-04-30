@@ -59,7 +59,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
     const float ArmorDamageReduction = FMath::Clamp(TargetArmor / 100.f, 0.f, 0.75f);
     Damage *= (1.f - ArmorDamageReduction);
 
-    // --- Critical Hit ---
     float SourceCriticalHitChance = 100.f;
     ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(
         DamageStatics().CriticalHitChanceDef, EvaluationParameters, SourceCriticalHitChance);
@@ -74,13 +73,12 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
     if (bCriticalHit)
     {
         // Double damage plus the bonus crit damage stat
-        Damage = 2.f * Damage + SourceCriticalHitDamage;
+        Damage = 1.1f * Damage + SourceCriticalHitDamage;
     }
 
 	FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
     UGAS_FunctionLibrary::SetIsCriticalHit(EffectContextHandle, bCriticalHit);
 
-    // --- Output ---
     const FGameplayModifierEvaluatedData EvaluatedData(
         UGAS_AttributeSetBase::GetIncomingDamageAttribute(),
         EGameplayModOp::Additive,

@@ -40,6 +40,11 @@ void AGAS_Enemy::Die(const FVector& DeathImpulse)
 	{
 		HealthWidgetComponent->DestroyComponent();
 	}
+
+	if (StunParticleComp)
+	{
+		StunParticleComp->DestroyComponent();
+	}
 }
 
 void AGAS_Enemy::BeginPlay()
