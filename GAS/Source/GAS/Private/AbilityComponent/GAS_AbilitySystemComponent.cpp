@@ -1,8 +1,12 @@
 ﻿#include "AbilityComponent/GAS_AbilitySystemComponent.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GAS_GameplayTags.h"
 #include "Abilities/GAS_AbilitySystemLibrary.h"
 #include "Abilities/GAS_BaseAbility.h"
+#include "Attributes/GAS_AttributeSetBase.h"
 #include "Data/GAS_AbilityTypes.h"
+#include "Interface/CharacterInterface.h"
 
 // Sets default values for this component's properties
 UGAS_AbilitySystemComponent::UGAS_AbilitySystemComponent()
@@ -186,6 +190,25 @@ void UGAS_AbilitySystemComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 			}
 		}
 	}
+}
+
+void UGAS_AbilitySystemComponent::SpendAttributePoint(const FGameplayTag& AttributeTag)
+{
+	if (GetAvatarActor()->Implements<UCharacterInterface>())
+	{
+		if (ICharacterInterface::Execute_GetAttributePoints(GetAvatarActor()) > 0)
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = AttributeTag;
+			Payload.EventMagnitude = 1.f;
+	
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetAvatarActor(),AttributeTag,Payload);
+
+			ICharacterInterface::Execute_AddToAttributePoints(GetAvatarActor(),-Payload.EventMagnitude);
+		}
+	}
+	
+	
 }
 
 FGameplayTag UGAS_AbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)

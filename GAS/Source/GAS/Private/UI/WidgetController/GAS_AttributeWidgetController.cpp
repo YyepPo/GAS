@@ -32,8 +32,14 @@ void UGAS_AttributeWidgetController::BroadcastInitialValues()
 	AttributePointsChanged.Broadcast(GetGASPS()->GetAttributePoints());
 }
 
+void UGAS_AttributeWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+	UGAS_AbilitySystemComponent* GASAC = CastChecked<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	GASAC->SpendAttributePoint(AttributeTag);
+}
+
 void UGAS_AttributeWidgetController::BroadcastAttributeChange(const FGameplayTag& AttributeTag,
-	const FGameplayAttribute& Attribute)
+                                                              const FGameplayAttribute& Attribute)
 {
 check(AttributeInfo);
 

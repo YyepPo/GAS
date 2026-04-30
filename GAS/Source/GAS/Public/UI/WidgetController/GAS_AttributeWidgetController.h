@@ -29,6 +29,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerStatChangedSignature AttributePointsChanged;
 
+	UFUNCTION(BlueprintCallable)
+	void UpgradeAttribute(const FGameplayTag& AttributeTag);
+	
 private:
 
 	void BroadcastAttributeChange(const FGameplayTag& AttributeTag,const FGameplayAttribute& Attribute);

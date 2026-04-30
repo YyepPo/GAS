@@ -14,6 +14,7 @@ UGAS_AttributeSetBase::UGAS_AttributeSetBase()
 	const FGAS_GameplayTags& GameplayTags = FGAS_GameplayTags::Get();
 
 	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Strength,GetStrengthAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Intelligence,GetIntelligenceAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Vigor,GetStrengthAttribute);
 
 }
@@ -109,7 +110,6 @@ void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		HandleIncomingXP(EffectProperties);
 	}
-
 }
 
 void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)

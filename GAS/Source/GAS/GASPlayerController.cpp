@@ -64,24 +64,13 @@ void AGASPlayerController::SetupInputComponent()
 			}
 		}
 	}
-	
-	// Add this log to confirm what class is actually being created
-	UE_LOG(LogTemp, Warning, TEXT("aaaaaaaa -InputComponent class: %s"), 
-		*InputComponent->GetClass()->GetName());
 
 	if(UGAS_AbilityEnhancedInput* GASInputComp = Cast<UGAS_AbilityEnhancedInput>(InputComponent))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("aaaaaaaa Cast SUCCEEDED")); // Will this print?
 		GASInputComp->BindAbilityAction(InputConfig,this,&AGASPlayerController::AbilityInputPressed,&AGASPlayerController::AbilityInputReleased,&AGASPlayerController::AbilityInputHeld);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("aaaaaaaa Cast FAILED - wrong input component class"));
-	}
+
 }
-
-
-
 
 bool AGASPlayerController::ShouldUseTouchControls() const
 {
@@ -112,3 +101,4 @@ void AGASPlayerController::AbilityInputReleased(const FGameplayTag Tag)
 void AGASPlayerController::AbilityInputHeld(const FGameplayTag Tag)
 {
 }
+

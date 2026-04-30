@@ -55,6 +55,28 @@ float UGAS_AbilitySystemLibrary::GetDirectionToTargetInDegress(const FVector& Ac
 	return Acos;
 }
 
+UGAS_OverlayWidgetController* UGAS_AbilitySystemLibrary::GetOverlayWidgetController(const UObject* WorldContextObject)
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldContextObject,0);
+	if (PlayerController == nullptr)
+	{
+		return nullptr;
+	}
+
+	AGAS_HUD* Hud = Cast<AGAS_HUD>(PlayerController->GetHUD());
+	if (Hud == nullptr)
+	{
+		return nullptr;
+	}
+		
+	AGAS_PlayerState* PlayerState = PlayerController->GetPlayerState<AGAS_PlayerState>();
+	UAbilitySystemComponent* AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
+	UAttributeSet* AttributeSet = PlayerState->GetAttributeSet();
+	const FGAS_WidgetControllerParams Params (PlayerController, PlayerState,AbilitySystemComponent,AttributeSet);
+	
+	return Hud->GetOverlayWidgetController(Params);
+}
+
 UGAS_AttributeWidgetController* UGAS_AbilitySystemLibrary::GetAttributeWidgetController(
 	const UObject* WorldContextObject)
 {

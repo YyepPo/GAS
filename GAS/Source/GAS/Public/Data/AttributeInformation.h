@@ -28,7 +28,8 @@ class GAS_API UAttributeInformation : public UDataAsset
 {
 	GENERATED_BODY()
 public:
-	
+
+	UFUNCTION(BlueprintCallable)
 	FAuraAttributeInfo FindAttributeInfoForTag(const FGameplayTag& AttributeTag) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
