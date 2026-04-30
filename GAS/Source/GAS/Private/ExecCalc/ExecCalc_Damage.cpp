@@ -60,12 +60,12 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
     Damage *= (1.f - ArmorDamageReduction);
 
     // --- Critical Hit ---
-    float SourceCriticalHitChance = 0.f;
+    float SourceCriticalHitChance = 100.f;
     ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(
         DamageStatics().CriticalHitChanceDef, EvaluationParameters, SourceCriticalHitChance);
     SourceCriticalHitChance = FMath::Max(SourceCriticalHitChance, 0.f);
 
-    float SourceCriticalHitDamage = 0.f;
+    float SourceCriticalHitDamage = 50.f;
     ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(
         DamageStatics().CriticalHitDamageDef, EvaluationParameters, SourceCriticalHitDamage);
     SourceCriticalHitDamage = FMath::Max(SourceCriticalHitDamage, 0.f);

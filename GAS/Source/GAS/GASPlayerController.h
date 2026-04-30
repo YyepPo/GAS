@@ -52,6 +52,11 @@ protected:
 	/** Returns true if the player should use UMG touch controls */
 	bool ShouldUseTouchControls() const;
 
+public:
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void DisplayDamageText(float IncomingDamage,const FVector& ActorLocation);
+	
 private:
 
 	UPROPERTY()

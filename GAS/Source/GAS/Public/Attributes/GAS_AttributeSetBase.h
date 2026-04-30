@@ -198,10 +198,11 @@ public:
 private:
 
 	void HandleIncomingDamage(const FEffectProperties& Props);
+	void DisplayDamageNumberText(const FEffectProperties& Props,float IncomingDamageAmount);
 	void SendXPEvent(const FEffectProperties& Props);
 	void HandleIncomingXP(const FEffectProperties& Props); 
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const; 
-
+	
 protected:
 	
 	/* 

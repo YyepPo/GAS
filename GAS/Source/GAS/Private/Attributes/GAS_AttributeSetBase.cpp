@@ -2,6 +2,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "GASPlayerController.h"
 #include "GAS_GameplayTags.h"
 #include "Abilities/GAS_AbilitySystemLibrary.h"
 #include "AbilityComponent/GAS_FunctionLibrary.h"
@@ -144,7 +145,7 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				{
 					Props.TargetCharacter->LaunchCharacter(KnockbackForce, true, true);
 				}
-
+								
 				// Hit react montage
 				FGameplayTag HitReactTag = UGAS_AbilitySystemLibrary::CalculateHitDirection(
 				Props.SourceCharacter, Props.TargetAvatarActor);
@@ -158,15 +159,41 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				Props.TargetASC->RemoveLooseGameplayTag(HitReactTag);
 			}
 		}
+		if (Props.SourceAvatarActor)
+		{
+			if (Props.SourceAvatarActor->Implements<UCharacterInterface>())
+			{
+				ICharacterInterface::Execute_ShowHitMarker(Props.SourceAvatarActor);
+
+				DisplayDamageNumberText(Props, LocalIncomingDamage);
+			}
+		}
+	}	
+}
+
+void UGAS_AttributeSetBase::DisplayDamageNumberText(const FEffectProperties& Props,float IncomingDamageAmount)
+{
+	if (Props.SourceCharacter == nullptr || Props.TargetCharacter == nullptr)
+	{
+		return;
 	}
 
-	if (Props.SourceAvatarActor)
+	//Check if the attacker is not dealing damage to himself
+	if (Props.SourceCharacter == Props.TargetCharacter)
 	{
-		if (Props.SourceAvatarActor->Implements<UCharacterInterface>())
-		{
-			ICharacterInterface::Execute_ShowHitMarker(Props.SourceAvatarActor);
-		}
+		return;
 	}
+	
+	AGASPlayerController* GAS_PlayerController = Cast<AGASPlayerController>(Props.SourceCharacter->GetController());
+	if (GAS_PlayerController == nullptr)
+	{
+		return;
+	}
+
+	GAS_PlayerController->DisplayDamageText(IncomingDamageAmount,Props.TargetCharacter->GetActorLocation());
+
+	UE_LOG(LogTemp,Warning,TEXT("Local damagaaaaae: %f"),IncomingDamageAmount);
+
 }
 
 void UGAS_AttributeSetBase::SendXPEvent(const FEffectProperties& Props)
