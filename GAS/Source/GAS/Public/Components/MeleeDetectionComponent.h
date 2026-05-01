@@ -31,7 +31,8 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void StartTrace(const FName InStartSocket,const FName InEndSocket);
+	void StartTrace(const FName InStartSocket,const FName InEndSocket,
+		bool EnableDebug,float InCapsuleRadius,float InCapsuleHeight);
 	
 	UFUNCTION(BlueprintCallable)
 	void StopTrace();
@@ -57,7 +58,16 @@ private:
 	UPROPERTY()
 	TSet<TObjectPtr<AActor>> HitActors;
 	
+	// The reason of doing this is that in low frame rates there is a huge gap btw each detection
+	
 	// Store previous frame positions
 	FVector PreviousStartLocation;
 	FVector PreviousEndLocation;
+	
+	/* Whether to show trace debugs or not **/
+	UPROPERTY(EditDefaultsOnly)
+	bool bEnableDebug = false;
+	
+	float CapsuleRadius;
+	float CapsuleHalfHeight;
 };

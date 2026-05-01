@@ -23,16 +23,26 @@ void UMeleeDetectionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	}
 }
 
-void UMeleeDetectionComponent::StartTrace(const FName InStartSocket,const FName InEndSocket)
+void UMeleeDetectionComponent::StartTrace(const FName InStartSocket,const FName InEndSocket,
+	bool EnableDebug,float InCapsuleRadius,float InCapsuleHeight)
 {
 	bStartTrace = true;
+	
+	bEnableDebug = EnableDebug;
 	
 	TraceStartSocket = InStartSocket;
 	TraceEndSocket = InEndSocket;
 	
+	CapsuleRadius = InCapsuleRadius;
+	CapsuleHalfHeight = InCapsuleHeight;;
+	
 	USkeletalMeshComponent* Mesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
-
-	// Seed previous positions so first frame trace is a zero-length sweep, not a wild sweep from origin
+	if (Mesh == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("UMeleeDetectionComponent: Start Trace: Owner's mesh component is not valid %s "), *GetOwner()->GetActorNameOrLabel())
+		return;
+	}
+	
 	PreviousStartLocation = Mesh->GetSocketLocation(TraceStartSocket);
 	PreviousEndLocation = Mesh->GetSocketLocation(TraceEndSocket);
 }
@@ -61,14 +71,19 @@ void UMeleeDetectionComponent::DoTrace()
 		return;
 	}
 	
-	TArray<FHitResult> HitResults;
-	
 	USkeletalMeshComponent* Mesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
+	if (Mesh == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("UMeleeDetectionComponent: Start Trace: Owner's mesh component is not valid %s "), *Owner->GetActorNameOrLabel())
+		return;
+	}
+	
+	TArray<FHitResult> HitResults;
     
 	FVector CurrentStart = Mesh->GetSocketLocation(TraceStartSocket);
 	FVector CurrentEnd = Mesh->GetSocketLocation(TraceEndSocket);
 	
-	FCollisionShape Shape =	FCollisionShape::MakeCapsule(32,32);
+	FCollisionShape Shape =	FCollisionShape::MakeCapsule(CapsuleRadius,CapsuleHalfHeight);
 	
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
