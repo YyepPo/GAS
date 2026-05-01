@@ -7,15 +7,11 @@
 #include "GAS_WidgetController.generated.h"
 
 class UGAS_AbilityInfo;
-
 class UGAS_AbilitySystemComponent;
 class UAbilitySystemComponent;
-
 class UGAS_AttributeSetBase;
 class UAttributeSet;
-
 class AGASPlayerController;
-
 class APlayerState;
 class AGAS_PlayerState;
 
@@ -63,9 +59,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
 	FAbilityInfoSignature AbilityInfoDelegate;
-
-
-protected:
 
 protected:
 
