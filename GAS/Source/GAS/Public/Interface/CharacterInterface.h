@@ -58,4 +58,5 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ShowHitMarker();
+	
 };

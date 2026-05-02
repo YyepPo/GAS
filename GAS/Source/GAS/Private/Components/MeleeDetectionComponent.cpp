@@ -83,11 +83,11 @@ void UMeleeDetectionComponent::DoTrace()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
 	
-	 World->SweepMultiByChannel(HitResults,PreviousStartLocation,CurrentStart,
+	 World->SweepMultiByChannel(HitResults,PreviousStartLocation,PreviousEndLocation,
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,Shape,Params);
 	
-	World->SweepMultiByChannel(HitResults,PreviousEndLocation,CurrentEnd,
+	World->SweepMultiByChannel(HitResults,CurrentStart,CurrentEnd,
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,Shape,Params);
 
