@@ -70,4 +70,6 @@ private:
 	
 	float CapsuleRadius;
 	float CapsuleHalfHeight;
+	
+	USkeletalMeshComponent* GetOwnersMesh() const;
 };

@@ -36,12 +36,8 @@ void UMeleeDetectionComponent::StartTrace(const FName InStartSocket,const FName 
 	CapsuleRadius = InCapsuleRadius;
 	CapsuleHalfHeight = InCapsuleHeight;;
 	
-	USkeletalMeshComponent* Mesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
-	if (Mesh == nullptr)
-	{
-		UE_LOG(LogTemp,Warning,TEXT("UMeleeDetectionComponent: Start Trace: Owner's mesh component is not valid %s "), *GetOwner()->GetActorNameOrLabel())
-		return;
-	}
+	USkeletalMeshComponent* Mesh = GetOwnersMesh();
+	if (Mesh == nullptr) return;
 	
 	PreviousStartLocation = Mesh->GetSocketLocation(TraceStartSocket);
 	PreviousEndLocation = Mesh->GetSocketLocation(TraceEndSocket);
@@ -71,19 +67,18 @@ void UMeleeDetectionComponent::DoTrace()
 		return;
 	}
 	
-	USkeletalMeshComponent* Mesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
+	USkeletalMeshComponent* Mesh = GetOwnersMesh();
 	if (Mesh == nullptr)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("UMeleeDetectionComponent: Start Trace: Owner's mesh component is not valid %s "), *Owner->GetActorNameOrLabel())
 		return;
 	}
 	
 	TArray<FHitResult> HitResults;
     
-	FVector CurrentStart = Mesh->GetSocketLocation(TraceStartSocket);
-	FVector CurrentEnd = Mesh->GetSocketLocation(TraceEndSocket);
+	const FVector CurrentStart = Mesh->GetSocketLocation(TraceStartSocket);
+	const FVector CurrentEnd = Mesh->GetSocketLocation(TraceEndSocket);
 	
-	FCollisionShape Shape =	FCollisionShape::MakeCapsule(CapsuleRadius,CapsuleHalfHeight);
+	const FCollisionShape Shape = FCollisionShape::MakeCapsule(CapsuleRadius,CapsuleHalfHeight);
 	
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
@@ -95,6 +90,17 @@ void UMeleeDetectionComponent::DoTrace()
 	World->SweepMultiByChannel(HitResults,PreviousEndLocation,CurrentEnd,
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,Shape,Params);
+
+	if(bEnableDebug)
+	{
+		DrawDebugCapsule(World, PreviousStartLocation, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Green, false, 0.1f);
+		DrawDebugCapsule(World, CurrentStart, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Blue, false, 0.1f);
+		DrawDebugLine(World, PreviousStartLocation, CurrentStart, FColor::Green, false, 0.1f);
+
+		DrawDebugCapsule(World, PreviousEndLocation, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Green, false, 0.1f);
+		DrawDebugCapsule(World, CurrentEnd, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Blue, false, 0.1f);
+		DrawDebugLine(World, PreviousEndLocation, CurrentEnd, FColor::Green, false, 0.1f);
+	}
 
 	for (const FHitResult& HitResult : HitResults)
 	{
@@ -119,4 +125,15 @@ void UMeleeDetectionComponent::DoTrace()
 	
 	PreviousStartLocation = CurrentStart;
 	PreviousEndLocation = CurrentEnd;
+}
+
+USkeletalMeshComponent* UMeleeDetectionComponent::GetOwnersMesh() const
+{
+	USkeletalMeshComponent* Mesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
+	if (Mesh == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("UMeleeDetectionComponent: Start Trace: Owner's mesh component is not valid %s "), *GetOwner()->GetActorNameOrLabel())
+		return nullptr;
+	}
+	return Mesh;
 }
