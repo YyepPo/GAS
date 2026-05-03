@@ -145,6 +145,8 @@ void UCombatLockOnComponent::LockToTarget(AActor* Target)
 {
 	CurrentTarget = Target;
 	bLockStarted = true;
+	
+	OnLockTargetUpdated.Broadcast(Target);
 }
 
 void UCombatLockOnComponent::SwitchTarget()
@@ -227,6 +229,11 @@ void UCombatLockOnComponent::SwitchTarget()
 	// project all targets to screen space
 	for (AActor* Target : ValidTargets)
 	{
+		if (Target == nullptr)
+		{
+			continue;
+		}
+		
 		FVector2D TargetScreenLoc = FVector2D::Zero();
 		bool bTargetProjected =	PlayerController->ProjectWorldLocationToScreen(Target->GetActorLocation(),TargetScreenLoc,true);
 		if (bTargetProjected == false)
@@ -235,6 +242,11 @@ void UCombatLockOnComponent::SwitchTarget()
 		}
 		
 		const float ScreenXOffset = TargetScreenLoc.X - CurrentTargetScreenLoc.X;
+		
+		const bool bSwitchRight = true;
+			
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, 
+		FString::Printf(TEXT("CombatLockOnComponent: Switchtarget: Target's %s lock score is: %f "),*Target->GetActorNameOrLabel(),FMath::Abs(ScreenXOffset)));
 		
 		if (bSwitchRight && ScreenXOffset <= 0.f)
 		{
@@ -264,7 +276,10 @@ void UCombatLockOnComponent::StopLock()
 {
 	bLockStarted = false;
 	CurrentTarget = nullptr;
+	
 	LockableTargets.Empty();
+	
+	OnLockTargetUpdated.Broadcast(nullptr);
 }
 
 bool UCombatLockOnComponent::CanLock() const
