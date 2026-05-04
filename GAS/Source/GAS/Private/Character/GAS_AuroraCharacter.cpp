@@ -149,7 +149,15 @@ void AGAS_AuroraCharacter::Lock()
 {
 	if (CombatLockOnComponent)
 	{
-		CombatLockOnComponent->StartLock(CameraComponent);
+		if (CombatLockOnComponent->bLockStarted)
+		{
+			CombatLockOnComponent->StopLock();
+		}
+		else
+		{
+			CombatLockOnComponent->StartLock(CameraComponent);
+		}
+		
 		SpringArmComponent->bUsePawnControlRotation = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}

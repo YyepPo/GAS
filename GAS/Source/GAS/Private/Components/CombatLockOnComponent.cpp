@@ -3,6 +3,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "Interface/CharacterInterface.h"
+#include "Interface/CombatInterface.h"
 
 // Sets default values for this component's properties
 UCombatLockOnComponent::UCombatLockOnComponent()
@@ -55,44 +57,13 @@ void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
 		return;
 	}
 	
-	LockableTargets.Empty();
-	
-	TArray<AActor*> OverlappedActors;
-
-	// Sphere trace to detect lockable targets within a radius
-
-	UKismetSystemLibrary::SphereOverlapActors(
-		GetWorld(),                    
-		OwnerActor->GetActorLocation(),
-		SphereRadius,                  
-		ObjectTypes,                   
-		ActorClassFilter,              
-		ActorsToIgnore,                
-		OverlappedActors          
-	);
-	
-	CachedCamera = CameraComponent;
-	
-	const FVector ForwardVector = CameraComponent->GetForwardVector();
-	const FVector CameraLocation = CameraComponent->GetComponentLocation();
-
-	
-	// Find targets that are in front of the camera
-	for (AActor* Target : OverlappedActors)
+	TArray<AActor*> ValidTargets = GetLockableTargets();
+	if (ValidTargets.IsEmpty())
 	{
-		const bool bIsInFront =	IsTargetInFront(Target,CameraLocation,ForwardVector);
-		if (bIsInFront)
-		{
-			LockableTargets.Add(Target);
-			DrawDebugSphere(World,Target->GetActorLocation(),120,10,FColor::Green,true,5.f);
-			continue;
-		}
+		return;
 	}
 	
-	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Green,
-		FString::Printf(TEXT("LockOnComponent: Number of lockable targets : %d"),LockableTargets.Num()));
-
-	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(LockableTargets));
+	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(ValidTargets));
 }
 
 bool UCombatLockOnComponent::IsTargetInFront(AActor* Target,const FVector& CameraLocation,const FVector& CameraForwardVector)
@@ -143,7 +114,9 @@ bool UCombatLockOnComponent::IsTargetVisible(AActor* Target, const FVector& Came
 
 void UCombatLockOnComponent::LockToTarget(AActor* Target)
 {
+	ListenForTargetDeathEvent(Target);
 	CurrentTarget = Target;
+	
 	bLockStarted = true;
 	
 	OnLockTargetUpdated.Broadcast(Target);
@@ -200,26 +173,13 @@ AActor* UCombatLockOnComponent::SelectTargetClosestToMiddleOfTheScreen(const TAr
 	return BestTarget;
 }
 
-
-void UCombatLockOnComponent::SwitchTarget()
+TArray<AActor*> UCombatLockOnComponent::GetLockableTargets()
 {
-	UWorld* World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-	
 	AActor* OwnerActor = GetOwnerActor();
 	if (OwnerActor == nullptr)
 	{
-		return;
+		return TArray<AActor*>();
 	}
-
-	if (CurrentTarget == nullptr)
-	{
-		return;
-	}
-		
 	LockableTargets.Empty();
 	
 	TArray<AActor*> OverlappedActors;
@@ -255,7 +215,61 @@ void UCombatLockOnComponent::SwitchTarget()
 		
 		ValidTargets.Add(Target);		
 	}
+	return ValidTargets;
+}
+
+void UCombatLockOnComponent::ListenForTargetDeathEvent(AActor* Target)
+{
+	// Unbind from the old target 
+	if (CurrentTarget)
+	{
+		if (ICombatInterface* OldEnemy = Cast<ICombatInterface>(CurrentTarget))
+		{
+			OldEnemy->GetOnDeathDelegate().RemoveDynamic(this,&UCombatLockOnComponent::OnTargetDeathEvent);
+		}
+	}	
 	
+	// Bind to the new target
+	if (Target)
+	{
+		if (ICombatInterface* NewEnemy = Cast<ICombatInterface>(Target))
+		{
+			NewEnemy->GetOnDeathDelegate().AddDynamic(this,&UCombatLockOnComponent::OnTargetDeathEvent);
+		}
+	}
+}
+
+void UCombatLockOnComponent::OnTargetDeathEvent(AActor* Target)
+{
+	if (LockableTargets.IsEmpty())
+	{
+		StopLock();
+		return;
+	}
+	
+	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(LockableTargets));
+}
+
+void UCombatLockOnComponent::SwitchTarget()
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+	
+	AActor* OwnerActor = GetOwnerActor();
+	if (OwnerActor == nullptr)
+	{
+		return;
+	}
+
+	if (CurrentTarget == nullptr)
+	{
+		return;
+	}
+	
+	TArray<AActor*> ValidTargets = GetLockableTargets();
 	if (ValidTargets.IsEmpty())
 	{
 		return;
@@ -263,11 +277,6 @@ void UCombatLockOnComponent::SwitchTarget()
 	
 	APlayerController* PlayerController = GetPlayerController();
 	if (PlayerController == nullptr)
-	{
-		return;
-	}
-	
-	if (CurrentTarget == nullptr)
 	{
 		return;
 	}
@@ -324,6 +333,15 @@ void UCombatLockOnComponent::SwitchTarget()
 
 void UCombatLockOnComponent::StopLock()
 {
+	// Unbind
+	if (CurrentTarget)
+	{
+		if (ICombatInterface* OldEnemy = Cast<ICombatInterface>(CurrentTarget))
+		{
+			OldEnemy->GetOnDeathDelegate().RemoveDynamic(this,&UCombatLockOnComponent::OnTargetDeathEvent);
+		}
+	}
+	
 	bLockStarted = false;
 	CurrentTarget = nullptr;
 	

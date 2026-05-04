@@ -58,6 +58,9 @@ public:
 	UPROPERTY(Blueprintassignable)
 	FOnLockTargetUpdated OnLockTargetUpdated;
 	
+	/** Indicates whether a lock-on is currently active. */
+	bool bLockStarted = false;
+	
 	/// 
 	// Getters
 	///  
@@ -99,9 +102,6 @@ private:
 	/* Cached camera component of the player. Used as the start point of detection line trace **/
 	UPROPERTY()
 	UCameraComponent* CachedCamera;
-	
-	/** Indicates whether a lock-on is currently active. */
-	bool bLockStarted = false;
 
 	/** Checks if the target is in the general forward direction of the camera. */
 	bool IsTargetInFront(AActor* Target,const FVector& CameraLocation,const FVector& CameraForwardVector);
@@ -112,7 +112,14 @@ private:
 	/** Sets the current target and broadcasts the update delegate. */
 	void LockToTarget(AActor* Target);
 
+	/** Selects a target that is closest to the middle of the screen */
 	AActor* SelectTargetClosestToMiddleOfTheScreen(const TArray<AActor*>& Actors);
+	
+	TArray<AActor*> GetLockableTargets();
+	
+	void ListenForTargetDeathEvent(AActor* Target);
+	UFUNCTION()
+	void OnTargetDeathEvent(AActor* Target);
 		
 	/** Returns whether there are any lockable targets available. */
 	bool CanLock() const;
