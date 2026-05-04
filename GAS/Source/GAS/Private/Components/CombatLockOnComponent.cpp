@@ -31,6 +31,14 @@ void UCombatLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FString CurrentTargetNameMsg = FString::Printf(TEXT("LockOnComponent: CurrentTarget name: %s"), 
 	CurrentTarget ? *CurrentTarget->GetActorNameOrLabel() : TEXT("None"));
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, CurrentTargetNameMsg);
+
+	DrawDebugSphere(GetWorld(),GetOwner()->GetActorLocation(),SphereRadius,14,FColor::Green);
+
+	if (CurrentTarget)
+	{
+		DrawDebugSphere(GetWorld(),CurrentTarget->GetActorLocation(),120,16,FColor::Blue);
+	}
+	
 }
 
 void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
@@ -51,6 +59,8 @@ void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
 	
 	TArray<AActor*> OverlappedActors;
 
+	// Sphere trace to detect lockable targets within a radius
+
 	UKismetSystemLibrary::SphereOverlapActors(
 		GetWorld(),                    
 		OwnerActor->GetActorLocation(),
@@ -65,6 +75,7 @@ void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
 	
 	const FVector ForwardVector = CameraComponent->GetForwardVector();
 	const FVector CameraLocation = CameraComponent->GetComponentLocation();
+
 	
 	// Find targets that are in front of the camera
 	for (AActor* Target : OverlappedActors)
@@ -73,26 +84,15 @@ void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
 		if (bIsInFront)
 		{
 			LockableTargets.Add(Target);
-			DrawDebugSphere(World,Target->GetActorLocation(),120,5,FColor::Green,true,5.f);
+			DrawDebugSphere(World,Target->GetActorLocation(),120,10,FColor::Green,true,5.f);
 			continue;
 		}
-		
-		DrawDebugSphere(World,Target->GetActorLocation(),100,5,FColor::Red,true,5.f);
 	}
 	
 	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Green,
 		FString::Printf(TEXT("LockOnComponent: Number of lockable targets : %d"),LockableTargets.Num()));
 
-	// Check if the target is visible to the camera, is not behind any walls or something
-	for (AActor* Target : LockableTargets)
-	{
-		const bool bIsVisible =	IsTargetVisible(Target,CameraLocation);
-		if (bIsVisible)
-		{
-			LockToTarget(Target);
-			break;
-		}
-	}
+	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(LockableTargets));
 }
 
 bool UCombatLockOnComponent::IsTargetInFront(AActor* Target,const FVector& CameraLocation,const FVector& CameraForwardVector)
@@ -129,7 +129,7 @@ bool UCombatLockOnComponent::IsTargetVisible(AActor* Target, const FVector& Came
 	{
 		return false;
 	}
-	const FVector LineEndLocation = Target->GetActorLocation() + FVector(0,0,TargetCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()) ;
+	const FVector LineEndLocation = Target->GetActorLocation();// + FVector(0,0,TargetCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()) ;
 	
 	FHitResult HitResult;
 	World->LineTraceSingleByChannel(HitResult,
@@ -149,6 +149,58 @@ void UCombatLockOnComponent::LockToTarget(AActor* Target)
 	OnLockTargetUpdated.Broadcast(Target);
 }
 
+AActor* UCombatLockOnComponent::SelectTargetClosestToMiddleOfTheScreen(const TArray<AActor*>& Actors)
+{
+	if (Actors.Num() == 0)
+	{
+		return nullptr;
+	}
+
+	APlayerController* PlayerController = GetPlayerController();
+	if (!PlayerController)
+	{
+		return nullptr;
+	}
+
+	int32 ScreenX, ScreenY;
+	PlayerController->GetViewportSize(ScreenX, ScreenY);
+	const FVector2D ScreenCenter(ScreenX * 0.5f, ScreenY * 0.5f);
+
+	AActor* BestTarget = nullptr;
+	float BestDistanceSq = FLT_MAX;
+
+	for (AActor* Target : Actors)
+	{
+		if (!Target)
+		{
+			continue;
+		}
+
+		FVector2D ScreenPos;
+		const bool bProjected = PlayerController->ProjectWorldLocationToScreen(
+			Target->GetActorLocation(),
+			ScreenPos,
+			true
+		);
+
+		if (!bProjected)
+		{
+			continue;
+		}
+
+		const float DistSq = FVector2D::DistSquared(ScreenPos, ScreenCenter);
+
+		if (DistSq < BestDistanceSq)
+		{
+			BestDistanceSq = DistSq;
+			BestTarget = Target;
+		}
+	}
+
+	return BestTarget;
+}
+
+
 void UCombatLockOnComponent::SwitchTarget()
 {
 	UWorld* World = GetWorld();
@@ -159,6 +211,11 @@ void UCombatLockOnComponent::SwitchTarget()
 	
 	AActor* OwnerActor = GetOwnerActor();
 	if (OwnerActor == nullptr)
+	{
+		return;
+	}
+
+	if (CurrentTarget == nullptr)
 	{
 		return;
 	}
@@ -225,11 +282,16 @@ void UCombatLockOnComponent::SwitchTarget()
 	
 	AActor* BestCandidate = nullptr;
 	float BestScore = FLT_MAX;
-	
+
 	// project all targets to screen space
 	for (AActor* Target : ValidTargets)
 	{
 		if (Target == nullptr)
+		{
+			continue;
+		}
+
+		if (CurrentTarget == Target)
 		{
 			continue;
 		}
@@ -238,25 +300,13 @@ void UCombatLockOnComponent::SwitchTarget()
 		bool bTargetProjected =	PlayerController->ProjectWorldLocationToScreen(Target->GetActorLocation(),TargetScreenLoc,true);
 		if (bTargetProjected == false)
 		{
+			UE_LOG(LogTemp,Warning,TEXT("CombatLockOnComponent: Switchtarget: Target's %s PROJECTED FALSE "),*Target->GetActorNameOrLabel());
 			continue;
 		}
 		
 		const float ScreenXOffset = TargetScreenLoc.X - CurrentTargetScreenLoc.X;
 		
-		const bool bSwitchRight = true;
-			
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, 
-		FString::Printf(TEXT("CombatLockOnComponent: Switchtarget: Target's %s lock score is: %f "),*Target->GetActorNameOrLabel(),FMath::Abs(ScreenXOffset)));
-		
-		if (bSwitchRight && ScreenXOffset <= 0.f)
-		{
-			continue;
-		}
-		
-		if (!bSwitchRight && ScreenXOffset >= 0.f)
-		{
-			continue;
-		}
+		UE_LOG(LogTemp,Warning,TEXT("CombatLockOnComponent: Switchtarget: Target's %s lock score is: %f "),*Target->GetActorNameOrLabel(),FMath::Abs(ScreenXOffset));
 
 		float Score = FMath::Abs(ScreenXOffset);
 		if (Score < BestScore)
@@ -289,7 +339,7 @@ bool UCombatLockOnComponent::CanLock() const
 
 AActor* UCombatLockOnComponent::GetOwnerActor() const
 {
-	if (AActor* Owner = GetOwnerActor())
+	if (AActor* Owner = GetOwner())
 	{
 		return Owner;
 	}

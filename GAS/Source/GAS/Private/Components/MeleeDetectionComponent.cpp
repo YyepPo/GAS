@@ -74,53 +74,57 @@ void UMeleeDetectionComponent::DoTrace()
 	}
 	
 	TArray<FHitResult> HitResults;
-    
-	const FVector CurrentStart = Mesh->GetSocketLocation(TraceStartSocket);
-	const FVector CurrentEnd = Mesh->GetSocketLocation(TraceEndSocket);
 	
 	const FCollisionShape Shape = FCollisionShape::MakeCapsule(CapsuleRadius,CapsuleHalfHeight);
 	
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
+
+	const FVector CurrentStart = Mesh->GetSocketLocation(TraceStartSocket);
+	const FVector CurrentEnd = Mesh->GetSocketLocation(TraceEndSocket);
 	
-	 World->SweepMultiByChannel(HitResults,PreviousStartLocation,PreviousEndLocation,
-		FQuat::Identity,
-		ECollisionChannel::ECC_Visibility,Shape,Params);
-	
-	World->SweepMultiByChannel(HitResults,CurrentStart,CurrentEnd,
-		FQuat::Identity,
-		ECollisionChannel::ECC_Visibility,Shape,Params);
-
-	if(bEnableDebug)
+	for (int i = 0; i < 4; ++i)
 	{
-		DrawDebugCapsule(World, PreviousStartLocation, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Green, false, 0.1f);
-		DrawDebugCapsule(World, CurrentStart, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Blue, false, 0.1f);
-		DrawDebugLine(World, PreviousStartLocation, CurrentStart, FColor::Green, false, 0.1f);
+		const float Alpha = (i + 1) / static_cast<float>(4);
 
-		DrawDebugCapsule(World, PreviousEndLocation, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Green, false, 0.1f);
-		DrawDebugCapsule(World, CurrentEnd, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Blue, false, 0.1f);
-		DrawDebugLine(World, PreviousEndLocation, CurrentEnd, FColor::Green, false, 0.1f);
-	}
+		const FVector StepStart = FMath::Lerp(PreviousStartLocation, CurrentStart, Alpha);
+		const FVector StepEnd = FMath::Lerp(PreviousEndLocation, CurrentEnd, Alpha);
 
-	for (const FHitResult& HitResult : HitResults)
-	{
-		if (HitResult.bBlockingHit)
+		World->SweepMultiByChannel(HitResults,StepStart,StepEnd,
+			   FQuat::Identity,
+			   ECollisionChannel::ECC_GameTraceChannel1,Shape,Params);
+
+		if(bEnableDebug)
 		{
-			AActor* HitActor =	HitResult.GetActor();
-			if (HitActor == nullptr)
-			{
-				continue;
-			}
-		
-			if (HitActors.Contains(HitActor))
-			{
-				continue;
-			}
-		
-			HitActors.Add(HitActor);
-		
-			OnHitDetected.Broadcast(HitResult);
+			DrawDebugSphere(GetWorld(),CurrentStart,10,10,FColor::Red,false,0.5);
+			DrawDebugSphere(GetWorld(),CurrentEnd,10,10,FColor::Red,false,0.5);
+
+			DrawDebugLine(World,StepStart,StepEnd,FColor::Green,false,0.5,0,2);
 		}
+
+		for (const FHitResult& HitResult : HitResults)
+		{
+			if (HitResult.bBlockingHit)
+			{
+				AActor* HitActor =	HitResult.GetActor();
+				if (HitActor == nullptr)
+				{
+					continue;
+				}
+		
+				if (HitActors.Contains(HitActor))
+				{
+					continue;
+				}
+		
+				HitActors.Add(HitActor);
+
+				UE_LOG(LogTemp,Warning,TEXT("Hit actor: %s"),*HitActor->GetActorNameOrLabel());
+		
+				OnHitDetected.Broadcast(HitResult);
+			}
+		}
+		
 	}
 	
 	PreviousStartLocation = CurrentStart;

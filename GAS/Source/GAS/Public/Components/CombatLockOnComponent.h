@@ -49,15 +49,20 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Lock")
 	void StopLock();
+
+	/** Evaluates valid targets and switches to a new one based on screen space proximity. */
+	UFUNCTION(BlueprintCallable, Category = "Lock")
+	void SwitchTarget();
 	
 	/** Delegate fired when the locked target changes. Broadcasts the new target (or nullptr if lock stopped). */
 	UPROPERTY(Blueprintassignable)
 	FOnLockTargetUpdated OnLockTargetUpdated;
-
+	
 	/// 
 	// Getters
 	///  
-	
+
+	UFUNCTION(BlueprintCallable,BlueprintPure,Category = "Lock")
 	FORCEINLINE AActor* GetCurrentTarget() const {return CurrentTarget;}
 	
 private:
@@ -67,19 +72,19 @@ private:
 	///
 	
 	/** Radius used for the sphere overlap to detect lockable targets. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
+	UPROPERTY(EditAnywhere, Category = "Overlap")
 	float SphereRadius = 300.0f;
 
 	/** Object types to look for when scanning for targets. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
+	UPROPERTY(EditAnywhere, Category = "Overlap")
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 
 	/** Actors that should be ignored during the overlap scan (usually includes the owner). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
+	UPROPERTY(EditAnywhere, Category = "Overlap")
 	TArray<AActor*> ActorsToIgnore;
 
 	/** Specific class filter for targets to be considered valid lock-on candidates. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Overlap")
+	UPROPERTY(EditAnywhere, Category = "Overlap")
 	TSubclassOf<AActor> ActorClassFilter;
 	
 	
@@ -107,9 +112,8 @@ private:
 	/** Sets the current target and broadcasts the update delegate. */
 	void LockToTarget(AActor* Target);
 
-	/** Evaluates valid targets and switches to a new one based on screen space proximity. */
-	void SwitchTarget();
-	
+	AActor* SelectTargetClosestToMiddleOfTheScreen(const TArray<AActor*>& Actors);
+		
 	/** Returns whether there are any lockable targets available. */
 	bool CanLock() const;
 
@@ -118,4 +122,6 @@ private:
 
 	/** Helper to retrieve the player controller of the owner pawn. */
 	APlayerController* GetPlayerController() const;
+	
+	int32 LockCounter = 0;
 };

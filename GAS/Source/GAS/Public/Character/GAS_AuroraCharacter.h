@@ -8,6 +8,8 @@
 #include "Interface/CharacterInterface.h"
 #include "GAS_AuroraCharacter.generated.h"
 
+class USpringArmComponent;
+class UCombatLockOnComponent;
 class UAbilityInputInfo;
 
 UCLASS()
@@ -22,12 +24,22 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 	
 	/** Called from server, initializes AbilitySystemComponent on the server */
 	virtual void PossessedBy(AController* NewController) override;
 
 	/** Called on client, initializes AbilitySystemComponent on the client */
 	virtual void OnRep_PlayerState() override;
+
+	///
+	// Components
+	/// 
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Components",meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCombatLockOnComponent> CombatLockOnComponent;
+	
 
 	virtual void Landed(const FHitResult& Hit) override;
 	
@@ -59,8 +71,16 @@ protected:
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
+	UInputAction* LookAction;
 
+	/** Lock Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockAction;
+
+	/** Lock Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchLockAction;
+	
 	/** Called for movement input */
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
@@ -69,8 +89,35 @@ protected:
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void Lock();
+
+	UFUNCTION()
+	void SwitchLock();
+	
 	UPROPERTY(EditAnywhere, Category = "Camera Shake")
 	TSubclassOf<class UCameraShakeBase> HitCameraShake;
+	
+	UPROPERTY(BlueprintreadOnly,meta = (AllowPrivateAccess = "true"))
+	float MoveForward;
+	UPROPERTY(BlueprintreadOnly,meta = (AllowPrivateAccess = "true"))
+	float MoveRight;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditAnywhere)
+	FVector SpringArmOffsetOnLock;
+
+	UPROPERTY(EditAnywhere)
+	float SpringRotateInterpSpeed = 10.f;
+	UPROPERTY(EditAnywhere)
+	float SpringLocationInterpSpeed = 10.f;
+	UPROPERTY(EditAnywhere)
+	float MeshRotateInterSpeed = 10.f;
 	
 public:
 

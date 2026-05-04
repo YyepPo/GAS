@@ -7,18 +7,28 @@
 #include "GASCharacter.h"
 #include "GASPlayerController.h"
 #include "GAS_GameplayTags.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CombatLockOnComponent.h"
 #include "Data/LevelUpConfig.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Input/GAS_AbilityEnhancedInput.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Player/GAS_PlayerState.h"
 #include "UI/GAS_HUD.h"
-
 
 // Sets default values
 AGAS_AuroraCharacter::AGAS_AuroraCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
+	SpringArmComponent->SetupAttachment(RootComponent);
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Arm Component"));
+	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	CombatLockOnComponent = CreateDefaultSubobject<UCombatLockOnComponent>(FName("CombatLockOnComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -48,6 +58,10 @@ void AGAS_AuroraCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGAS_AuroraCharacter::Look);
+
+		//Lock
+		EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Started, this, &AGAS_AuroraCharacter::Lock);
+		EnhancedInputComponent->BindAction(SwitchLockAction, ETriggerEvent::Started, this, &AGAS_AuroraCharacter::SwitchLock);
 	}
 }
 
@@ -57,18 +71,67 @@ void AGAS_AuroraCharacter::Move(const FInputActionValue& Value)
 	{
 		return;
 	}
-	
+		
 	const FVector2D InputAxisVector = Value.Get<FVector2D>();
 
-	// Use controller yaw for movement direction (camera-relative movement)
-	const FRotator Rotation = GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+	if (CombatLockOnComponent->GetCurrentTarget())
+	{
+		AActor* CurrentTarget = CombatLockOnComponent->GetCurrentTarget();
+		if (CurrentTarget == nullptr)
+		{
+			return;
+		}
+		
+		DrawDebugLine(GetWorld(),CombatLockOnComponent->GetCurrentTarget()->GetActorLocation(),GetActorLocation(),FColor::Red,false,0.f);
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		FVector ForwardAxis = CurrentTarget->GetActorLocation() - GetActorLocation();
+		ForwardAxis.Normalize();
 
-	AddMovementInput(ForwardDirection, InputAxisVector.Y);
-	AddMovementInput(RightDirection,   InputAxisVector.X);
+		FVector RightAxis =	FVector::CrossProduct(FVector(0,0,1),ForwardAxis);
+		
+		AddMovementInput(ForwardAxis,InputAxisVector.Y);
+		AddMovementInput(RightAxis,InputAxisVector.X);	
+		
+	}
+	else
+	{
+		// Use controller yaw for movement direction (camera-relative movement)
+		const FRotator Rotation = GetControlRotation();
+		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+	
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	
+		AddMovementInput(ForwardDirection, InputAxisVector.Y);
+		AddMovementInput(RightDirection,   InputAxisVector.X);	
+	}
+}
+
+void AGAS_AuroraCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (CombatLockOnComponent->GetCurrentTarget())
+	{
+		FVector TargetLocation = CombatLockOnComponent->GetCurrentTarget()->GetActorLocation();
+		TargetLocation.Z += 0.f;
+
+		FVector Direction = TargetLocation - GetActorLocation();
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+
+		// Smooth interpolation
+		FRotator CurrentRot = SpringArmComponent->GetComponentRotation();
+		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRotation, DeltaSeconds, SpringRotateInterpSpeed);
+		SpringArmComponent->SetWorldRotation(NewRot);
+
+		FVector cl = SpringArmComponent->GetRelativeLocation();
+		FVector nw = FMath::VInterpTo(cl, SpringArmOffsetOnLock, DeltaSeconds,SpringLocationInterpSpeed);
+		SpringArmComponent->SetRelativeLocation(nw);
+		
+		// Rotate player mesh towards the target
+		FRotator CurrentRotation = GetActorRotation();
+		FRotator TargetRot = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaSeconds, MeshRotateInterSpeed);
+		SetActorRotation(FRotator(GetActorRotation().Pitch,TargetRot.Yaw,GetActorRotation().Roll));
+	}
 }
 
 void AGAS_AuroraCharacter::Look(const FInputActionValue& Value)
@@ -80,6 +143,24 @@ void AGAS_AuroraCharacter::Look(const FInputActionValue& Value)
 	
 //	// Vertical — pitch camera up/down (clamped by SpringArm or CameraManager)
 	AddControllerPitchInput(LookAxisVector.Y); 
+}
+
+void AGAS_AuroraCharacter::Lock()
+{
+	if (CombatLockOnComponent)
+	{
+		CombatLockOnComponent->StartLock(CameraComponent);
+		SpringArmComponent->bUsePawnControlRotation = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	}
+}
+
+void AGAS_AuroraCharacter::SwitchLock()
+{
+	if (CombatLockOnComponent)
+	{
+		CombatLockOnComponent->SwitchTarget();
+	}
 }
 
 void AGAS_AuroraCharacter::PossessedBy(AController* NewController)
