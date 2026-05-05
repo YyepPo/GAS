@@ -150,6 +150,10 @@ public:
 	FGameplayAttributeData MaxMana;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase, MaxMana)
 
+	UPROPERTY(ReplicatedUsing = OnRep_ManaRegenRate,BlueprintReadOnly, Category = "Primary")
+	FGameplayAttributeData ManaRegenRate;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,ManaRegenRate)
+
 	/** Current Stamina of the player.
 	* Used to execute abilities.
 	* This variable is replicated.
@@ -190,10 +194,10 @@ public:
 	FGameplayAttributeData Intelligence;
 	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Intelligence)
 	
-	/* Deal more damage from behind , reduce detection **/
-	UPROPERTY(ReplicatedUsing = OnRep_Stealth ,BlueprintReadOnly,Category = "Phyiscal")
-	FGameplayAttributeData Stealth;
-	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Stealth)
+	/* Modifies magical/spell/ability damage, mana costs, cooldown reduction, **/
+	UPROPERTY(ReplicatedUsing = OnRep_Vigor ,BlueprintReadOnly,Category = "Phyiscal")
+	FGameplayAttributeData Vigor;
+	ATTRIBUTE_ACCESSORS(UGAS_AttributeSetBase,Vigor)
 
 private:
 
@@ -234,6 +238,9 @@ protected:
 	UFUNCTION()
 	void OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate) const;
 
+	UFUNCTION()
+	void OnRep_ManaRegenRate(const FGameplayAttributeData& OldManaRegenRate) const;
+
 	// ====================== Physical / Mental Attributes ======================
 	UFUNCTION()
 	void OnRep_Strength(const FGameplayAttributeData& OldStrength) const;
@@ -242,5 +249,5 @@ protected:
 	void OnRep_Intelligence(const FGameplayAttributeData& OldIntelligence) const;
 
 	UFUNCTION()
-	void OnRep_Stealth(const FGameplayAttributeData& OldStealth) const;
+	void OnRep_Vigor(const FGameplayAttributeData& OldVigor) const;
 };

@@ -16,10 +16,18 @@ UGAS_AttributeSetBase::UGAS_AttributeSetBase()
 
 	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Strength,GetStrengthAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Intelligence,GetIntelligenceAttribute);
-	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Vigor,GetStrengthAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Primary_Vigor,GetVigorAttribute);
+	
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitChance,GetCriticalHitChanceAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitDamage,GetCriticalHitDamageAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_Armor,GetArmorAttribute);
+
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxHealth,GetMaxHealthAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxMana,GetMaxManaAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxStamina,GetMaxStaminaAttribute);
+		
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_HealthRegeneration,GetHealthRegenRateAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ManaRegeneration,GetManaRegenRateAttribute);
 }
 
 void UGAS_AttributeSetBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -32,6 +40,7 @@ void UGAS_AttributeSetBase::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Mana,             COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, MaxMana,          COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, ManaRegenRate,          COND_None, REPNOTIFY_Always);
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Stamina,          COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, MaxStamina,       COND_None, REPNOTIFY_Always);
@@ -39,7 +48,7 @@ void UGAS_AttributeSetBase::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 	
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Strength,         COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Intelligence,     COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Stealth,          COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UGAS_AttributeSetBase, Vigor,          COND_None, REPNOTIFY_Always);
 }
 
 void UGAS_AttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -345,6 +354,11 @@ void UGAS_AttributeSetBase::OnRep_StaminaRegenRate(const FGameplayAttributeData&
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, StaminaRegenRate, OldStaminaRegenRate);
 }
 
+void UGAS_AttributeSetBase::OnRep_ManaRegenRate(const FGameplayAttributeData& OldManaRegenRate) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, ManaRegenRate, OldManaRegenRate);
+}
+
 void UGAS_AttributeSetBase::OnRep_Strength(const FGameplayAttributeData& OldStrength) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, Strength, OldStrength);
@@ -355,7 +369,7 @@ void UGAS_AttributeSetBase::OnRep_Intelligence(const FGameplayAttributeData& Old
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, Intelligence, OldIntelligence);
 }
 
-void UGAS_AttributeSetBase::OnRep_Stealth(const FGameplayAttributeData& OldStealth) const
+void UGAS_AttributeSetBase::OnRep_Vigor(const FGameplayAttributeData& OldVigor) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, Stealth, OldStealth);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UGAS_AttributeSetBase, Vigor, OldVigor);
 }

@@ -39,7 +39,12 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Components",meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCombatLockOnComponent> CombatLockOnComponent;
-	
+
+	FRotator PreLockSpringArmRotation;
+	FVector PreLockSpringArmLocation;
+	FRotator PreLockActorRotation;
+	bool bIsRestoringFromLock = false;
+
 
 	virtual void Landed(const FHitResult& Hit) override;
 	
@@ -108,19 +113,11 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* CameraComponent;
-
-	UPROPERTY(EditAnywhere)
-	FVector SpringArmOffsetOnLock;
-
-	UPROPERTY(EditAnywhere)
-	float SpringRotateInterpSpeed = 10.f;
-	UPROPERTY(EditAnywhere)
-	float SpringLocationInterpSpeed = 10.f;
-	UPROPERTY(EditAnywhere)
-	float MeshRotateInterSpeed = 10.f;
 	
 public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
+	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const {return SpringArmComponent;}
+	FORCEINLINE UCameraComponent* GetCameraComponent() const {return CameraComponent;}
 };

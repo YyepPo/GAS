@@ -6,7 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "CombatLockOnComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockTargetUpdated,AActor*,Target);
+class AGAS_AuroraCharacter;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockTargetUpdated, AActor*, Target);
 
 class UCameraComponent;
 
@@ -60,7 +61,11 @@ public:
 	
 	/** Indicates whether a lock-on is currently active. */
 	bool bLockStarted = false;
-	
+	bool bIsRestoringFromLock;
+	FRotator PreLockSpringArmRotation;
+	FVector PreLockSpringArmLocation;
+	FRotator PreLockActorRotation;
+
 	/// 
 	// Getters
 	///  
@@ -127,8 +132,25 @@ private:
 	/** Helper to get the component's owner. */
 	AActor* GetOwnerActor() const;
 
+	AGAS_AuroraCharacter* GetOwnerCharacter() const;
+
 	/** Helper to retrieve the player controller of the owner pawn. */
 	APlayerController* GetPlayerController() const;
 	
 	int32 LockCounter = 0;
+
+	UPROPERTY()
+	class USpringArmComponent* CachedSpringArm;
+
+	UPROPERTY(EditAnywhere)
+	FVector SpringArmOffsetOnLock;
+
+	UPROPERTY(EditAnywhere)
+	float SpringRotateInterpSpeed = 10.f;
+	UPROPERTY(EditAnywhere)
+	float SpringLocationInterpSpeed = 10.f;
+	UPROPERTY(EditAnywhere)
+	float MeshRotateInterSpeed = 10.f;
+
+	void SavePreLockState();
 };

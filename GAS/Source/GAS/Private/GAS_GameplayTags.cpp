@@ -77,6 +77,11 @@ void FGAS_GameplayTags::InitializeNativeGameplayTags()
 		FString("Amount of Mana regenerated every 1 second")
 		);
 
+	GameplayTags.Attributes_Secondary_HealthRegeneration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Secondary.StaminaRegeneration"),
+		FString("Amount of Stamina regenerated every 1 second")
+		);
+	
 	GameplayTags.Attributes_Secondary_MaxHealth = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Attributes.Secondary.MaxHealth"),
 		FString("Maximum amount of Health obtainable")
@@ -87,6 +92,11 @@ void FGAS_GameplayTags::InitializeNativeGameplayTags()
 		FString("Maximum amount of Mana obtainable")
 		);
 
+	GameplayTags.Attributes_Secondary_MaxStamina = UGameplayTagsManager::Get().AddNativeGameplayTag(
+			FName("Attributes.Secondary.MaxStamina"),
+			FString("Maximum amount of Stamina obtainable")
+			);
+	
 	/*
 	 * Input Tags
 	 */

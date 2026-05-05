@@ -1,8 +1,14 @@
 ﻿#include "Components/CombatLockOnComponent.h"
+
+#include <filesystem>
+
 #include "Kismet/KismetSystemLibrary.h"
 #include "Camera/CameraComponent.h"
+#include "Character/GAS_AuroraCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Interface/CharacterInterface.h"
 #include "Interface/CombatInterface.h"
 
@@ -23,6 +29,14 @@ void UCombatLockOnComponent::BeginPlay()
 	
 	// Ignore self
 	ActorsToIgnore.Add(GetOwner());
+
+	AGAS_AuroraCharacter* Character = GetOwnerCharacter();
+	if (Character)
+	{
+		CachedSpringArm = Character->GetSpringArmComponent(); 
+		CachedCamera = Character->GetCameraComponent();
+	}
+	
 }
 
 void UCombatLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -30,6 +44,7 @@ void UCombatLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
+	/*
 	FString CurrentTargetNameMsg = FString::Printf(TEXT("LockOnComponent: CurrentTarget name: %s"), 
 	CurrentTarget ? *CurrentTarget->GetActorNameOrLabel() : TEXT("None"));
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, CurrentTargetNameMsg);
@@ -39,6 +54,58 @@ void UCombatLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	if (CurrentTarget)
 	{
 		DrawDebugSphere(GetWorld(),CurrentTarget->GetActorLocation(),120,16,FColor::Blue);
+	}*/
+
+	if (CurrentTarget && bLockStarted)
+	{
+		bIsRestoringFromLock = false;
+
+		FVector TargetLocation = CurrentTarget->GetActorLocation();
+		TargetLocation.Z += 0.f;
+
+		FVector Direction = TargetLocation - GetOwner()->GetActorLocation();
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+
+		// Smooth interpolation
+		FRotator CurrentRot = CachedSpringArm->GetComponentRotation();
+		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRotation, DeltaTime, SpringRotateInterpSpeed);
+		CachedSpringArm->SetWorldRotation(NewRot);
+
+		FVector cl = CachedSpringArm->GetRelativeLocation();
+		FVector nw = FMath::VInterpTo(cl, SpringArmOffsetOnLock, DeltaTime,SpringLocationInterpSpeed);
+		CachedSpringArm->SetRelativeLocation(nw);
+		
+		// Rotate player mesh towards the target
+		FRotator CurrentRotation = GetOwner()->GetActorRotation();
+		FRotator TargetRot = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaTime, MeshRotateInterSpeed);
+		GetOwner()->SetActorRotation(FRotator(GetOwner()->GetActorRotation().Pitch,TargetRot.Yaw,GetOwner()->GetActorRotation().Roll));
+	}
+	else if (bIsRestoringFromLock)
+	{
+		bool bArmRotDone  = false;
+		bool bArmLocDone  = false;
+		bool bActorRotDone = false;
+
+		// Restore spring arm rotation
+		FRotator CurrentArmRot = CachedSpringArm->GetComponentRotation();
+		FRotator TargetArmRot = FRotator(
+			PreLockSpringArmRotation.Pitch,
+			CachedSpringArm->GetComponentRotation().Yaw,
+			PreLockSpringArmRotation.Roll);
+		FRotator NewArmRot = FMath::RInterpTo(CurrentArmRot, TargetArmRot, DeltaTime, SpringRotateInterpSpeed);
+		bArmRotDone = NewArmRot.Equals(PreLockSpringArmRotation, 0.5f);
+		
+		// Restore spring arm location
+		FVector CurrentArmLoc = CachedSpringArm->GetRelativeLocation();
+		FVector NewArmLoc = FMath::VInterpTo(CurrentArmLoc, PreLockSpringArmLocation, DeltaTime, SpringLocationInterpSpeed);
+		CachedSpringArm->SetRelativeLocation(NewArmLoc);
+		bArmLocDone = NewArmLoc.Equals(PreLockSpringArmLocation, 1.f);
+
+		// Stop restoring once everything has snapped back
+		if (bArmRotDone && bArmLocDone && bActorRotDone)
+		{
+			bIsRestoringFromLock = false;
+		}
 	}
 	
 }
@@ -56,6 +123,10 @@ void UCombatLockOnComponent::StartLock(UCameraComponent* CameraComponent)
 	{
 		return;
 	}
+
+	CachedCamera = CameraComponent;
+
+	SavePreLockState();
 	
 	TArray<AActor*> ValidTargets = GetLockableTargets();
 	if (ValidTargets.IsEmpty())
@@ -241,13 +312,14 @@ void UCombatLockOnComponent::ListenForTargetDeathEvent(AActor* Target)
 
 void UCombatLockOnComponent::OnTargetDeathEvent(AActor* Target)
 {
-	if (LockableTargets.IsEmpty())
+	TArray<AActor*> Actors = GetLockableTargets();
+	if (Actors.IsEmpty())
 	{
 		StopLock();
 		return;
 	}
 	
-	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(LockableTargets));
+	LockToTarget(SelectTargetClosestToMiddleOfTheScreen(Actors));
 }
 
 void UCombatLockOnComponent::SwitchTarget()
@@ -348,6 +420,15 @@ void UCombatLockOnComponent::StopLock()
 	LockableTargets.Empty();
 	
 	OnLockTargetUpdated.Broadcast(nullptr);
+
+	bIsRestoringFromLock = true;
+	
+	if (AGAS_AuroraCharacter* AuroraCharacter =	GetOwnerCharacter())
+	{
+		AuroraCharacter->GetSpringArmComponent()->bUsePawnControlRotation = true;
+		AuroraCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = true;	
+	}
+	
 }
 
 bool UCombatLockOnComponent::CanLock() const
@@ -379,4 +460,26 @@ APlayerController* UCombatLockOnComponent::GetPlayerController() const
 	}
 	
 	return OwnerController;
+}
+
+void UCombatLockOnComponent::SavePreLockState()
+{
+	if (AGAS_AuroraCharacter* AuroraCharacter =	GetOwnerCharacter())
+	{
+		PreLockSpringArmRotation = AuroraCharacter->GetSpringArmComponent()->GetComponentRotation();
+		PreLockSpringArmLocation = AuroraCharacter->GetSpringArmComponent()->GetRelativeLocation();
+		PreLockActorRotation     = AuroraCharacter->GetActorRotation();
+		AuroraCharacter->GetSpringArmComponent()->bUsePawnControlRotation = false;
+		AuroraCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	}	
+}
+
+AGAS_AuroraCharacter* UCombatLockOnComponent::GetOwnerCharacter() const
+{
+	if (AGAS_AuroraCharacter* Character = Cast<AGAS_AuroraCharacter>(GetOwner()))
+	{
+		return Character;
+	}
+
+	return nullptr;
 }

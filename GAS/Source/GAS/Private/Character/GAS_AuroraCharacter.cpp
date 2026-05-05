@@ -35,7 +35,6 @@ AGAS_AuroraCharacter::AGAS_AuroraCharacter()
 void AGAS_AuroraCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AGAS_AuroraCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -110,28 +109,7 @@ void AGAS_AuroraCharacter::Move(const FInputActionValue& Value)
 void AGAS_AuroraCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (CombatLockOnComponent->GetCurrentTarget())
-	{
-		FVector TargetLocation = CombatLockOnComponent->GetCurrentTarget()->GetActorLocation();
-		TargetLocation.Z += 0.f;
 
-		FVector Direction = TargetLocation - GetActorLocation();
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-		// Smooth interpolation
-		FRotator CurrentRot = SpringArmComponent->GetComponentRotation();
-		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRotation, DeltaSeconds, SpringRotateInterpSpeed);
-		SpringArmComponent->SetWorldRotation(NewRot);
-
-		FVector cl = SpringArmComponent->GetRelativeLocation();
-		FVector nw = FMath::VInterpTo(cl, SpringArmOffsetOnLock, DeltaSeconds,SpringLocationInterpSpeed);
-		SpringArmComponent->SetRelativeLocation(nw);
-		
-		// Rotate player mesh towards the target
-		FRotator CurrentRotation = GetActorRotation();
-		FRotator TargetRot = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaSeconds, MeshRotateInterSpeed);
-		SetActorRotation(FRotator(GetActorRotation().Pitch,TargetRot.Yaw,GetActorRotation().Roll));
-	}
 }
 
 void AGAS_AuroraCharacter::Look(const FInputActionValue& Value)
@@ -141,7 +119,7 @@ void AGAS_AuroraCharacter::Look(const FInputActionValue& Value)
 	// Horizontal — orbit camera around character
 	AddControllerYawInput(LookAxisVector.X);
 	
-//	// Vertical — pitch camera up/down (clamped by SpringArm or CameraManager)
+	// Vertical — pitch camera up/down (clamped by SpringArm or CameraManager)
 	AddControllerPitchInput(LookAxisVector.Y); 
 }
 
@@ -157,9 +135,6 @@ void AGAS_AuroraCharacter::Lock()
 		{
 			CombatLockOnComponent->StartLock(CameraComponent);
 		}
-		
-		SpringArmComponent->bUsePawnControlRotation = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 }
 
