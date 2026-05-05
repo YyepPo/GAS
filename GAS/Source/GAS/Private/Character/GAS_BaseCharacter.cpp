@@ -161,7 +161,6 @@ void AGAS_BaseCharacter::ApplyDefaultAttributes() const
 	ApplyGameplayEffectToSelf(DefaultPrimaryAttributeClass,1);
 	ApplyGameplayEffectToSelf(DefaultSecondaryAttributeClass,1);
 	ApplyGameplayEffectToSelf(DefaultVitalAttributeClass,1);
-//	ApplyGameplayEffectToSelf(DefaultVitalRegenClass,1);
 }
 
 void AGAS_BaseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const

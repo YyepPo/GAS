@@ -16,36 +16,39 @@ public:
 	                                         ECharacterClass CharacterClass,
 	                                         int32 CharacterLevel);
 
-	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect", meta = (GameplayTagFilter = "SetByCaller"))
+	UFUNCTION(BlueprintCallable, Category = "GameplayEffect", meta = (GameplayTagFilter = "SetByCaller"))
 	static FGameplayEffectSpecHandle AssignTagSetByCallerMagnitude(FGameplayEffectSpecHandle SpecHandle, FGameplayTag DataTag, float Magnitude);
 	
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DamageEffect")
+	UFUNCTION(BlueprintCallable, Category = "DamageEffect")
 	static void SetDeathImpulse(FGameplayEffectContextHandle& EffectContexthandle, const FVector& InImpulse);
 	
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DamageEffect")
+	UFUNCTION(BlueprintCallable, Category = "DamageEffect")
 	static void SetKnockbackForce(FGameplayEffectContextHandle& EffectContexthandle, const FVector& InImpulse);
 	
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DamageEffect")
+	UFUNCTION(BlueprintCallable, Category = "DamageEffect")
 	static FGameplayEffectContextHandle ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams);
 
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DamageEffect")
+	UFUNCTION(BlueprintCallable, Category = "DamageEffect")
 	static bool IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle);
 
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	UFUNCTION(BlueprintCallable, Category = "GameplayEffects")
 	static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bInIsCriticalHit);
 
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary")
+	UFUNCTION(BlueprintCallable, Category = "AbilitySystemLibrary")
 	static void InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC);
 
-	UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	UFUNCTION(BlueprintPure, Category = "GameplayEffects")
 	static FVector GetKnockbackForce(const FGameplayEffectContextHandle& EffectContextHandle);
 	
-	UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	UFUNCTION(BlueprintPure, Category = "GameplayEffects")
 	static FVector GetDeathImpulse(const FGameplayEffectContextHandle& EffectContextHandle);
 
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	UFUNCTION(BlueprintCallable, Category = "Tag")
 	static bool ApplyBlockMovementTag(UAbilitySystemComponent* ASC);
 
-	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|GameplayEffects")
+	UFUNCTION(BlueprintCallable, Category = "Tag")
 	static bool RemoveBlockMovementTag(UAbilitySystemComponent* ASC);
+
+	UFUNCTION(BlueprintCallable,Category = "Event")
+	static void SendRegenEvent(UAbilitySystemComponent* ASC);
 };

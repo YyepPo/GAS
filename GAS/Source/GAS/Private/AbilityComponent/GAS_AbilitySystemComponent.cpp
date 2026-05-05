@@ -188,6 +188,7 @@ void UGAS_AbilitySystemComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 					AbilitySpec.Handle,
 					AbilitySpec.ActivationInfo.GetActivationPredictionKey());
 			}
+			//OnGameplayEffectStackChangeDelegate()
 		}
 	}
 }

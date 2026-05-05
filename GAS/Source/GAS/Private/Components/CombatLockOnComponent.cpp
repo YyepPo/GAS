@@ -1,16 +1,13 @@
 ﻿#include "Components/CombatLockOnComponent.h"
 
-#include <filesystem>
-
-#include "Kismet/KismetSystemLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Character/GAS_AuroraCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Interface/CharacterInterface.h"
 #include "Interface/CombatInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
 UCombatLockOnComponent::UCombatLockOnComponent()
@@ -215,19 +212,8 @@ AActor* UCombatLockOnComponent::SelectTargetClosestToMiddleOfTheScreen(const TAr
 
 	for (AActor* Target : Actors)
 	{
-		if (!Target)
-		{
-			continue;
-		}
-
-		FVector2D ScreenPos;
-		const bool bProjected = PlayerController->ProjectWorldLocationToScreen(
-			Target->GetActorLocation(),
-			ScreenPos,
-			true
-		);
-
-		if (!bProjected)
+		FVector2D ScreenPos = FVector2D::ZeroVector;
+		if (!TryProjectTargetToScreen(Target, ScreenPos))
 		{
 			continue;
 		}
@@ -244,10 +230,174 @@ AActor* UCombatLockOnComponent::SelectTargetClosestToMiddleOfTheScreen(const TAr
 	return BestTarget;
 }
 
+AActor* UCombatLockOnComponent::SelectNextTarget(const TArray<AActor*>& Actors,
+	ELockOnSwitchDirection Direction) const
+{
+	if (CurrentTarget == nullptr)
+	{
+		return nullptr;
+	}
+
+	FVector2D CurrentTargetScreenPosition = FVector2D::ZeroVector;
+	if (!TryProjectTargetToScreen(CurrentTarget, CurrentTargetScreenPosition))
+	{
+		return nullptr;
+	}
+
+	AActor* BestCandidate = nullptr;
+	float BestHorizontalDelta = FLT_MAX;
+	float BestDistanceSq = FLT_MAX;
+
+	AActor* WrapCandidate = nullptr;
+	float WrapScreenX = Direction == ELockOnSwitchDirection::Right ? FLT_MAX : -FLT_MAX;
+	float WrapDistanceSq = FLT_MAX;
+
+	for (AActor* Target : Actors)
+	{
+		if (Target == nullptr || Target == CurrentTarget || !IsTargetAlive(Target))
+		{
+			continue;
+		}
+
+		FVector2D CandidateScreenPosition = FVector2D::ZeroVector;
+		if (!TryProjectTargetToScreen(Target, CandidateScreenPosition))
+		{
+			continue;
+		}
+
+		const float DeltaX = CandidateScreenPosition.X - CurrentTargetScreenPosition.X;
+		const bool bIsRequestedDirection =
+			Direction == ELockOnSwitchDirection::Right ? DeltaX > KINDA_SMALL_NUMBER : DeltaX < -KINDA_SMALL_NUMBER;
+		const float HorizontalDelta = FMath::Abs(DeltaX);
+		const float ScreenDistanceSq = FVector2D::DistSquared(CandidateScreenPosition, CurrentTargetScreenPosition);
+
+		if (bIsRequestedDirection)
+		{
+			const bool bIsBetterCandidate =
+				HorizontalDelta < BestHorizontalDelta ||
+				(FMath::IsNearlyEqual(HorizontalDelta, BestHorizontalDelta) && ScreenDistanceSq < BestDistanceSq);
+
+			if (bIsBetterCandidate)
+			{
+				BestCandidate = Target;
+				BestHorizontalDelta = HorizontalDelta;
+				BestDistanceSq = ScreenDistanceSq;
+			}
+
+			continue;
+		}
+
+		if (!bWrapSwitchTarget)
+		{
+			continue;
+		}
+
+		if (Direction == ELockOnSwitchDirection::Right)
+		{
+			const bool bIsBetterWrapCandidate =
+				CandidateScreenPosition.X < WrapScreenX ||
+				(FMath::IsNearlyEqual(CandidateScreenPosition.X, WrapScreenX) && ScreenDistanceSq < WrapDistanceSq);
+
+			if (bIsBetterWrapCandidate)
+			{
+				WrapCandidate = Target;
+				WrapScreenX = CandidateScreenPosition.X;
+				WrapDistanceSq = ScreenDistanceSq;
+			}
+		}
+		else
+		{
+			const bool bIsBetterWrapCandidate =
+				CandidateScreenPosition.X > WrapScreenX ||
+				(FMath::IsNearlyEqual(CandidateScreenPosition.X, WrapScreenX) && ScreenDistanceSq < WrapDistanceSq);
+
+			if (bIsBetterWrapCandidate)
+			{
+				WrapCandidate = Target;
+				WrapScreenX = CandidateScreenPosition.X;
+				WrapDistanceSq = ScreenDistanceSq;
+			}
+		}
+	}
+
+	return BestCandidate != nullptr ? BestCandidate : WrapCandidate;
+}
+
+bool UCombatLockOnComponent::TryProjectTargetToScreen(AActor* Target, FVector2D& OutScreenPosition) const
+{
+	OutScreenPosition = FVector2D::ZeroVector;
+
+	if (!IsTargetAlive(Target))
+	{
+		return false;
+	}
+
+	APlayerController* PlayerController = GetPlayerController();
+	if (PlayerController == nullptr)
+	{
+		return false;
+	}
+
+	int32 ViewportX = 0;
+	int32 ViewportY = 0;
+	PlayerController->GetViewportSize(ViewportX, ViewportY);
+	if (ViewportX <= 0 || ViewportY <= 0)
+	{
+		return false;
+	}
+
+	FVector CameraLocation = FVector::ZeroVector;
+	FVector CameraForwardVector = FVector::ForwardVector;
+	if (CachedCamera != nullptr)
+	{
+		CameraLocation = CachedCamera->GetComponentLocation();
+		CameraForwardVector = CachedCamera->GetForwardVector();
+	}
+	else if (PlayerController->PlayerCameraManager != nullptr)
+	{
+		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+		CameraForwardVector = PlayerController->PlayerCameraManager->GetCameraRotation().Vector();
+	}
+	else
+	{
+		return false;
+	}
+
+	FVector ProjectionLocation = Target->GetActorLocation();
+	FVector BoundsExtent = FVector::ZeroVector;
+	Target->GetActorBounds(true, ProjectionLocation, BoundsExtent);
+
+	const FVector DirectionToTarget = (ProjectionLocation - CameraLocation).GetSafeNormal();
+	if (FVector::DotProduct(CameraForwardVector, DirectionToTarget) <= 0.f)
+	{
+		return false;
+	}
+
+	if (!PlayerController->ProjectWorldLocationToScreen(ProjectionLocation, OutScreenPosition, true))
+	{
+		return false;
+	}
+
+	return OutScreenPosition.X >= 0.f &&
+		OutScreenPosition.X <= static_cast<float>(ViewportX) &&
+		OutScreenPosition.Y >= 0.f &&
+		OutScreenPosition.Y <= static_cast<float>(ViewportY);
+}
+
+bool UCombatLockOnComponent::IsTargetAlive(AActor* Target) const
+{
+	if (Target == nullptr || !Target->GetClass()->ImplementsInterface(UCombatInterface::StaticClass()))
+	{
+		return false;
+	}
+
+	return !ICombatInterface::Execute_IsDead(Target);
+}
+
 TArray<AActor*> UCombatLockOnComponent::GetLockableTargets()
 {
 	AActor* OwnerActor = GetOwnerActor();
-	if (OwnerActor == nullptr)
+	if (OwnerActor == nullptr || CachedCamera == nullptr)
 	{
 		return TArray<AActor*>();
 	}
@@ -269,7 +419,7 @@ TArray<AActor*> UCombatLockOnComponent::GetLockableTargets()
 	
 	for (AActor* Target : OverlappedActors)
 	{
-		if (Target == nullptr)
+		if (!IsTargetAlive(Target))
 		{
 			continue;
 		}
@@ -324,82 +474,44 @@ void UCombatLockOnComponent::OnTargetDeathEvent(AActor* Target)
 
 void UCombatLockOnComponent::SwitchTarget()
 {
-	UWorld* World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-	
-	AActor* OwnerActor = GetOwnerActor();
-	if (OwnerActor == nullptr)
-	{
-		return;
-	}
+	SwitchTargetRight();
+}
 
+void UCombatLockOnComponent::SwitchTargetLeft()
+{
 	if (CurrentTarget == nullptr)
 	{
 		return;
 	}
-	
-	TArray<AActor*> ValidTargets = GetLockableTargets();
+
+	const TArray<AActor*> ValidTargets = GetLockableTargets();
 	if (ValidTargets.IsEmpty())
 	{
 		return;
 	}
-	
-	APlayerController* PlayerController = GetPlayerController();
-	if (PlayerController == nullptr)
+
+	if (AActor* NextTarget = SelectNextTarget(ValidTargets, ELockOnSwitchDirection::Left))
+	{
+		LockToTarget(NextTarget);
+	}
+}
+
+void UCombatLockOnComponent::SwitchTargetRight()
+{
+	if (CurrentTarget == nullptr)
 	{
 		return;
 	}
-	
-	// Project current target to screen space
-	FVector2D CurrentTargetScreenLoc;
-	bool bCurrentTargetProjected = PlayerController->ProjectWorldLocationToScreen(CurrentTarget->GetActorLocation(),CurrentTargetScreenLoc,true);
-	if (bCurrentTargetProjected == false)
+
+	const TArray<AActor*> ValidTargets = GetLockableTargets();
+	if (ValidTargets.IsEmpty())
 	{
 		return;
 	}
-	
-	AActor* BestCandidate = nullptr;
-	float BestScore = FLT_MAX;
 
-	// project all targets to screen space
-	for (AActor* Target : ValidTargets)
+	if (AActor* NextTarget = SelectNextTarget(ValidTargets, ELockOnSwitchDirection::Right))
 	{
-		if (Target == nullptr)
-		{
-			continue;
-		}
-
-		if (CurrentTarget == Target)
-		{
-			continue;
-		}
-		
-		FVector2D TargetScreenLoc = FVector2D::Zero();
-		bool bTargetProjected =	PlayerController->ProjectWorldLocationToScreen(Target->GetActorLocation(),TargetScreenLoc,true);
-		if (bTargetProjected == false)
-		{
-			UE_LOG(LogTemp,Warning,TEXT("CombatLockOnComponent: Switchtarget: Target's %s PROJECTED FALSE "),*Target->GetActorNameOrLabel());
-			continue;
-		}
-		
-		const float ScreenXOffset = TargetScreenLoc.X - CurrentTargetScreenLoc.X;
-		
-		UE_LOG(LogTemp,Warning,TEXT("CombatLockOnComponent: Switchtarget: Target's %s lock score is: %f "),*Target->GetActorNameOrLabel(),FMath::Abs(ScreenXOffset));
-
-		float Score = FMath::Abs(ScreenXOffset);
-		if (Score < BestScore)
-		{
-			BestScore = Score;
-			BestCandidate = Target;
-		}
-	}
-	
-	if (BestCandidate)
-	{
-		LockToTarget(BestCandidate);
+		LockToTarget(NextTarget);
 	}
 }
 

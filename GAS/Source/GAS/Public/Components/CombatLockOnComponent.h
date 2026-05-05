@@ -10,6 +10,11 @@ class AGAS_AuroraCharacter;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockTargetUpdated, AActor*, Target);
 
 class UCameraComponent;
+enum class ELockOnSwitchDirection : uint8
+{
+	Left,
+	Right
+};
 
 /**
  * UCombatLockOnComponent handles the logic for a combat targeting system (Lock-On).
@@ -54,6 +59,14 @@ public:
 	/** Evaluates valid targets and switches to a new one based on screen space proximity. */
 	UFUNCTION(BlueprintCallable, Category = "Lock")
 	void SwitchTarget();
+
+	/** Switches to the nearest valid target on the left side of the current target in screen space. */
+	UFUNCTION(BlueprintCallable, Category = "Lock")
+	void SwitchTargetLeft();
+
+	/** Switches to the nearest valid target on the right side of the current target in screen space. */
+	UFUNCTION(BlueprintCallable, Category = "Lock")
+	void SwitchTargetRight();
 	
 	/** Delegate fired when the locked target changes. Broadcasts the new target (or nullptr if lock stopped). */
 	UPROPERTY(Blueprintassignable)
@@ -119,6 +132,15 @@ private:
 
 	/** Selects a target that is closest to the middle of the screen */
 	AActor* SelectTargetClosestToMiddleOfTheScreen(const TArray<AActor*>& Actors);
+
+	/** Selects the next valid target relative to the current target in screen space. */
+	AActor* SelectNextTarget(const TArray<AActor*>& Actors, ELockOnSwitchDirection Direction) const;
+
+	/** Projects a valid target into screen space and rejects dead, off-screen, or behind-camera targets. */
+	bool TryProjectTargetToScreen(AActor* Target, FVector2D& OutScreenPosition) const;
+
+	/** Returns whether the target can currently be used by the lock-on system. */
+	bool IsTargetAlive(AActor* Target) const;
 	
 	TArray<AActor*> GetLockableTargets();
 	
@@ -151,6 +173,9 @@ private:
 	float SpringLocationInterpSpeed = 10.f;
 	UPROPERTY(EditAnywhere)
 	float MeshRotateInterSpeed = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Lock")
+	bool bWrapSwitchTarget = true;
 
 	void SavePreLockState();
 };

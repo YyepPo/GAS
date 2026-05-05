@@ -5,16 +5,15 @@
 
 UMMC_MaxHealth::UMMC_MaxHealth()
 {
-	StrengthDef.AttributeToCapture = UGAS_AttributeSetBase::GetStrengthAttribute();
-	StrengthDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
-	StrengthDef.bSnapshot = false;
+	VigorDef.AttributeToCapture = UGAS_AttributeSetBase::GetVigorAttribute();
+	VigorDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
+	VigorDef.bSnapshot = false;
 
-	RelevantAttributesToCapture.Add(StrengthDef);
+	RelevantAttributesToCapture.Add(VigorDef);
 }
 
 float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {
-
 	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
 	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 
@@ -22,9 +21,9 @@ float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 	EvaluationParameters.SourceTags = SourceTags;
 	EvaluationParameters.TargetTags = TargetTags;
 
-	float Strength = 0.f;
-	GetCapturedAttributeMagnitude(StrengthDef, Spec, EvaluationParameters, Strength);
-	Strength = FMath::Max<float>(Strength, 0.f);
+	float Vigor = 0.f;
+	GetCapturedAttributeMagnitude(VigorDef, Spec, EvaluationParameters, Vigor);
+	Vigor = FMath::Max<float>(Vigor, 0.f);
 
 	int32 PlayerLevel = 1;
 	if (Spec.GetContext().GetSourceObject()->Implements<UCombatInterface>())
@@ -32,5 +31,5 @@ float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject());
 	}
 
-	return 80.f + 2.5f * Strength + 10.f * PlayerLevel;
+	return 80.f + 2.5f * Vigor + 10.f * PlayerLevel;
 }

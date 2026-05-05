@@ -1,5 +1,6 @@
 ﻿#include "AbilityComponent/GAS_FunctionLibrary.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "GAS_GameplayTags.h"
@@ -180,4 +181,15 @@ bool UGAS_FunctionLibrary::RemoveBlockMovementTag(UAbilitySystemComponent* ASC)
 	ASC->RemoveLooseGameplayTags(BlockedTags);
 
 	return true;
+}
+
+void UGAS_FunctionLibrary::SendRegenEvent(UAbilitySystemComponent* ASC)
+{
+	if (ASC == nullptr)
+	{
+		return;
+	}
+
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASC->GetAvatarActor(),FGAS_GameplayTags::Get().Event_Regen,Payload);
 }

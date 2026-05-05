@@ -5,10 +5,24 @@ FGAS_GameplayTags FGAS_GameplayTags::GameplayTags;
 
 void FGAS_GameplayTags::InitializeNativeGameplayTags()
 {
+	/*
+	 * Gameplay events 
+	 */
+	
 	GameplayTags.Event_HitConfirm = UGameplayTagsManager::Get().AddNativeGameplayTag(
 			FName("Event.HitConfirm"),
 			FString("hit confirm for hit marker")
 			);
+
+	GameplayTags.Event_Regen = UGameplayTagsManager::Get().AddNativeGameplayTag(
+					FName("Event.Regen"),
+					FString("Regenerate event")
+					);
+	
+	GameplayTags.Event_Regen_Mana = UGameplayTagsManager::Get().AddNativeGameplayTag(
+				FName("Event.Regen.Mana"),
+				FString("Regenerate mana event")
+				);
 	
 	/*
 	 * Primary Attributes

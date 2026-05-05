@@ -113,6 +113,8 @@ struct FGAS_GameplayTags
 	FGameplayTag GameplayCue_FireBlast;
 
 	FGameplayTag Event_HitConfirm;
+	FGameplayTag Event_Regen;
+	FGameplayTag Event_Regen_Mana;
 private:
     static FGAS_GameplayTags GameplayTags;
 };

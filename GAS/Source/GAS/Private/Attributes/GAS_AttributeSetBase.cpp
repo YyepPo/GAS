@@ -85,7 +85,6 @@ void UGAS_AttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribu
 	{
 		NewValue = FMath::Max(NewValue,1);
 	}
-	
 }
 
 void UGAS_AttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -168,6 +167,8 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 				
 				Props.TargetASC->RemoveLooseGameplayTag(HitReactTag);
+
+				UGAS_FunctionLibrary::SendRegenEvent(Props.SourceASC);
 			}
 		}
 		if (Props.SourceAvatarActor)
