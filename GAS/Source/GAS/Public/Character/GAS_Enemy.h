@@ -5,11 +5,16 @@
 #include "CoreMinimal.h"
 #include "GAS_BaseCharacter.h"
 #include "UI/WidgetController/GAS_OverlayWidgetController.h"
+#include "GameplayEffect.h"
 #include "GAS_Enemy.generated.h"
 
+struct FActiveGameplayEffectHandle;
+struct FGameplayEffectSpec;
 class FOnAttributeChangedSignature;
 class UWidgetComponent;
 class UOverlayWidget;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStackCountChanged,int32,NewCount);
 
 UCLASS()
 class GAS_API AGAS_Enemy : public AGAS_BaseCharacter
@@ -29,6 +34,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChangedSignature OnMaxHealthChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStackCountChanged OnStackCountChanged;
 	
 protected:
 
@@ -45,4 +53,20 @@ private:
 	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
 	
 	void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	void ListenForStackCountChange();
+	
+	// Mirrors what the async task does internally
+	void OnActiveGameplayEffectAdded(UAbilitySystemComponent* ASC,
+		const FGameplayEffectSpec& Spec,
+		FActiveGameplayEffectHandle Handle);
+	
+	void OnAnyGameplayEffectRemovedEvent(const FActiveGameplayEffect& Effect);
+
+	void OnHitStackChanged(FActiveGameplayEffectHandle Handle,
+		int32 NewCount, int32 OldCount);
+
+	FGameplayTag WatchedStackTag;
+
+	
 };

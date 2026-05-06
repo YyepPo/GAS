@@ -4,13 +4,13 @@
 #include "AttributeSet.h"
 #include "GAS_GameplayTags.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
-#include "AbilityComponent/GAS_FunctionLibrary.h"
 #include "Attributes/GAS_AttributeSetBase.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "UI/Widget/OverlayWidget.h"
+#
 
 AGAS_Enemy::AGAS_Enemy()
 {
@@ -79,6 +79,8 @@ void AGAS_Enemy::BeginPlay()
 		OnMaxHealthChanged.Broadcast(Set->GetHealth());
 		OnMaxHealthChanged.Broadcast(Set->GetMaxHealth());
 	}
+
+	ListenForStackCountChange();
 }
 
 void AGAS_Enemy::InitAbilityInfo()
@@ -90,7 +92,6 @@ void AGAS_Enemy::InitAbilityInfo()
 	}
 	
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
-	
 	AbilitySystemComponent->RegisterGameplayTagEvent(FGAS_GameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AGAS_Enemy::StunTagChanged);
 }
 
@@ -140,4 +141,49 @@ void AGAS_Enemy::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 
 	
 	UE_LOG(LogTemp,Warning,TEXT("StunTagChanged: NewCount=%d"), NewCount);
+}
+
+void AGAS_Enemy::ListenForStackCountChange()
+{
+	if (AbilitySystemComponent == nullptr)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("qwewqe"));
+		return;
+	}
+	
+	AbilitySystemComponent->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &AGAS_Enemy::OnActiveGameplayEffectAdded);
+
+	AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &AGAS_Enemy::OnAnyGameplayEffectRemovedEvent);
+
+	// Set whichever asset tag you put on GE_HitStack
+	WatchedStackTag = FGameplayTag::RequestGameplayTag("GameplayEffect.HitStack");
+}
+
+void AGAS_Enemy::OnActiveGameplayEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec,
+	FActiveGameplayEffectHandle Handle)
+{
+	// Filter to only your stacking GE by its asset tag
+	FGameplayTagContainer AssetTags;
+	Spec.GetAllAssetTags(AssetTags);
+
+	if (!AssetTags.HasTagExact(WatchedStackTag))
+		return;
+
+	// Now bind the stack change delegate — same as the async task does internally
+	FOnActiveGameplayEffectStackChange* StackDelegate =
+		AbilitySystemComponent->OnGameplayEffectStackChangeDelegate(Handle);
+
+	if (StackDelegate)
+	{
+		StackDelegate->AddUObject(this, &AGAS_Enemy::OnHitStackChanged);
+	}
+}
+
+void AGAS_Enemy::OnAnyGameplayEffectRemovedEvent(const FActiveGameplayEffect& Effect)
+{
+}
+
+void AGAS_Enemy::OnHitStackChanged(FActiveGameplayEffectHandle Handle, int32 NewCount, int32 OldCount)
+{
+	OnStackCountChanged.Broadcast(NewCount);
 }

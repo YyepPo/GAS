@@ -19,57 +19,8 @@ void UGAS_AbilitySystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Exactly what the async task does — bind both delegates on the ASC
-	OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(
-		this, &UGAS_AbilitySystemComponent::OnActiveGameplayEffectAdded);
-
-	OnAnyGameplayEffectRemovedDelegate().AddUObject(
-		this, &UGAS_AbilitySystemComponent::OnAnyGameplayEffectRemoved);
-
-	// Set whichever asset tag you put on GE_HitStack
-	WatchedStackTag = FGameplayTag::RequestGameplayTag("GameplayEffect.HitStack");
 }
 
-void UGAS_AbilitySystemComponent::OnActiveGameplayEffectAdded(
-	UAbilitySystemComponent* ASC,
-	const FGameplayEffectSpec& Spec,
-	FActiveGameplayEffectHandle Handle)
-{
-	// Filter to only your stacking GE by its asset tag
-	FGameplayTagContainer AssetTags;
-	Spec.GetAllAssetTags(AssetTags);
-
-	if (!AssetTags.HasTagExact(WatchedStackTag))
-		return;
-
-	// Now bind the stack change delegate — same as the async task does internally
-	FOnActiveGameplayEffectStackChange* StackDelegate =
-		OnGameplayEffectStackChangeDelegate(Handle);
-
-	if (StackDelegate)
-	{
-		StackDelegate->AddUObject(this, &UGAS_AbilitySystemComponent::OnHitStackChanged);
-	}
-}
-
-void UGAS_AbilitySystemComponent::OnAnyGameplayEffectRemoved(
-	const FActiveGameplayEffect& Effect)
-{
-	// Nothing needed here unless you want to clear the freeze early
-	// when the stack GE gets manually removed
-}
-
-void UGAS_AbilitySystemComponent::OnHitStackChanged(
-	FActiveGameplayEffectHandle Handle,
-	int32 NewCount,
-	int32 OldCount)
-{
-	FGameplayEffectContextHandle Context = MakeEffectContext();
-
-	if (NewCount >= 5)
-	{
-	}
-}
 
 // Called every frame
 void UGAS_AbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickType,

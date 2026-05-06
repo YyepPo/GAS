@@ -67,19 +67,7 @@ public:
 	FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
 	bool bStartupAbilitiesGiven = false;
-
-	// Mirrors what the async task does internally
-	void OnActiveGameplayEffectAdded(UAbilitySystemComponent* ASC,
-		const FGameplayEffectSpec& Spec,
-		FActiveGameplayEffectHandle Handle);
-
-	void OnAnyGameplayEffectRemoved(const FActiveGameplayEffect& Effect);
-
-	void OnHitStackChanged(FActiveGameplayEffectHandle Handle,
-		int32 NewCount, int32 OldCount);
-
-	FGameplayTag WatchedStackTag;
-	
+		
 	///
 	///Delegates
 	///
@@ -87,4 +75,5 @@ public:
 	FAbilitiesGiven AbilitiesGivenEvent;
 	FAbilityEquipped AbilityEquippedEvent;
 	FForEachAbility ForeachAbility;
+
 };
