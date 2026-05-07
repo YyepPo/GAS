@@ -37,6 +37,18 @@ void AGASPlayerController::BeginPlay()
 	}
 
 	GetASC();
+
+	if (IsLocalPlayerController())
+	{
+		// Fire every 0.1 seconds
+		GetWorldTimerManager().SetTimer(
+			TraceTimerHandle,
+			this,
+			&AGASPlayerController::PerformEnemyTrace,
+			EnemyTraceInterval,
+			true
+		);
+	}
 }
 
 void AGASPlayerController::SetupInputComponent()
@@ -100,5 +112,62 @@ void AGASPlayerController::AbilityInputReleased(const FGameplayTag Tag)
 
 void AGASPlayerController::AbilityInputHeld(const FGameplayTag Tag)
 {
+}
+
+void AGASPlayerController::PerformEnemyTrace()
+{
+	if (PlayerCameraManager == nullptr)
+	{
+		return;
+	}
+
+	FVector Start = PlayerCameraManager->GetCameraLocation();
+	FVector ForwardVector = PlayerCameraManager->GetActorForwardVector();
+
+	FVector End = Start + (ForwardVector * DetectionTraceLength);
+
+	FHitResult HitResult;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetPawn());
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECC_Visibility,
+		QueryParams
+	);
+
+//#if WITH_EDITOR
+//	DrawDebugLine(
+//		GetWorld(),
+//		Start,
+//		End,
+//		bHit ? FColor::Red : FColor::Green,
+//		false,
+//		0.11f,
+//		0,
+//		1.5f
+//	);
+//#endif
+
+	if (bHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
+
+		if (HitActor && UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor))
+		{
+			OnEnemyDetected.Broadcast(true);
+		}
+		else
+		{
+			OnEnemyDetected.Broadcast(false);
+		}
+	}
+	else
+	{
+		OnEnemyDetected.Broadcast(false);
+	}
 }
 

@@ -1,5 +1,6 @@
 ﻿#include "UI/WidgetController/GAS_OverlayWidgetController.h"
 
+#include "GASPlayerController.h"
 #include "GAS_GameplayTags.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
 #include "Attributes/GAS_AttributeSetBase.h"
@@ -65,8 +66,22 @@ void UGAS_OverlayWidgetController::BindCallbacksToDependencies()
 		{
 			GetGASASC()->AbilitiesGivenEvent.AddUObject(this, &UGAS_OverlayWidgetController::BroadcastAbilityInfo);
 		}
-
 	}
+
+	if (GetGASPC())
+	{
+		
+		GetGASPC()->OnEnemyDetected.AddLambda(
+		[this](bool bDetected)
+		{
+			OnTargetDetectedDelegate.Broadcast(bDetected);
+		});
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("QWEQWE"));
+	}
+	
 
 	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(
 	   FGameplayTagContainer(FGameplayTag::RequestGameplayTag("Event.HitConfirm")),

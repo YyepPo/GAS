@@ -27,8 +27,9 @@ struct FUIWidgetRow : public FTableRowBase
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLevelChangedSignature, int32, NewLevel, bool, bLevelUp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetDetected,bool, bDetected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLevelChangedSignature, int32, NewLevel, bool, bLevelUp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitMarker);
 
 
@@ -67,6 +68,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category="GAS|Hit Marker")
 	FOnHitMarker OnHitMarkerDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category="GAS|Hit Marker")
+	FOnTargetDetected OnTargetDetectedDelegate;
 	
 protected:
 

@@ -12,6 +12,8 @@ class UGAS_AbilitySystemComponent;
 class UInputMappingContext;
 class UUserWidget;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnemyDetected,bool);
+
 /**
  *  Basic PlayerController class for a third person game
  *  Manages input mappings
@@ -56,7 +58,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void DisplayDamageText(float IncomingDamage,const FVector& ActorLocation);
-	
+
+	FOnEnemyDetected OnEnemyDetected;
 private:
 
 	UPROPERTY()
@@ -66,11 +69,28 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UAbilityInputInfo* InputConfig;
-
-	
+		
 	void AbilityInputPressed(const FGameplayTag Tag);
 	UFUNCTION()
 	void AbilityInputReleased(const FGameplayTag Tag);
 	UFUNCTION()
 	void AbilityInputHeld(const FGameplayTag Tag);
+
+	///
+	// Detection Trace
+	///
+
+	// The length of the detection trace in units 100 unit = 1meter
+	UPROPERTY(EditDefaultsOnly,Category="Detection Trace")
+	float DetectionTraceLength = 400.f;
+
+	/**
+	* Time interval in seconds between each enemy detection line trace.
+	* Lower values update target detection more frequently but are more expensive.
+	*/
+	UPROPERTY(EditDefaultsOnly,Category="Detection Trace")
+	float EnemyTraceInterval = 0.1f;
+	
+	FTimerHandle TraceTimerHandle;
+	void PerformEnemyTrace();
 };
