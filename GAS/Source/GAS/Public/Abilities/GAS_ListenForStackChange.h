@@ -5,6 +5,7 @@
 #include "GAS_ListenForStackChange.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnStackCountChangedEvent, const FActiveGameplayEffectHandle&, ActiveGameplayEffectHandle,float, NewCount,float, OldCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStackGameplayEffectRemoved,const FGameplayTagContainer& ,AssetTags, int32 , StackCount);
 
 USTRUCT(BlueprintType)
 struct FStackThresholdConfig
@@ -34,6 +35,9 @@ public:
 
 	UPROPERTY(Blueprintassignable)
 	FOnStackCountChangedEvent OnStackCountChangedEvent;
+
+	UPROPERTY(Blueprintassignable)
+	FOnStackGameplayEffectRemoved OnStackGameplayEffectRemoved;
 	
 private:
 

@@ -1,8 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Abilities/GAS_ListenForStackChange.h"
-
+﻿#include "Abilities/GAS_ListenForStackChange.h"
 #include "AbilitySystemComponent.h"
 
 UGAS_ListenForStackChange::UGAS_ListenForStackChange()
@@ -24,7 +20,6 @@ void UGAS_ListenForStackChange::ActivateAbility(const FGameplayAbilitySpecHandle
 	}
 		
 	AbilitySystemComponent->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this,&UGAS_ListenForStackChange::OnGameplayEffectAdded);
-	AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate().AddUObject(this,&UGAS_ListenForStackChange::OnGameplayEffectRemoved);
 }
 
 void UGAS_ListenForStackChange::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -40,7 +35,6 @@ void UGAS_ListenForStackChange::OnGameplayEffectAdded(UAbilitySystemComponent* A
 	FGameplayTagContainer AssetTags;
 	GameplayEffectSpec.GetAllAssetTags(AssetTags);
 
-	// Check if any of the GE's asset tags match something we care about
 	for (auto& [Tag, Config] : StackConfigs)
 	{
 		if (AssetTags.HasTagExact(Tag))
@@ -50,7 +44,6 @@ void UGAS_ListenForStackChange::OnGameplayEffectAdded(UAbilitySystemComponent* A
 
 			if (StackDelegate)
 			{
-				// Capture the config by value so the lambda has everything it needs
 				StackDelegate->AddUObject(this,&UGAS_ListenForStackChange::OnStackCountChanged);
 			}
 
@@ -61,7 +54,11 @@ void UGAS_ListenForStackChange::OnGameplayEffectAdded(UAbilitySystemComponent* A
 
 void UGAS_ListenForStackChange::OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveGameplayEffect)
 {
-	
+	if (!ActiveGameplayEffect.Spec.Def) return;
+
+	FGameplayTagContainer AssetTags;
+	ActiveGameplayEffect.Spec.GetAllAssetTags(AssetTags);
+	OnStackGameplayEffectRemoved.Broadcast(AssetTags, ActiveGameplayEffect.Spec.GetStackCount());
 }
 
 void UGAS_ListenForStackChange::OnStackCountChanged(FActiveGameplayEffectHandle GameplayEffectHandle, int32 NewStackCount,

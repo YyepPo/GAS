@@ -6,6 +6,8 @@
 #include "Interface/CombatInterface.h"
 #include "GAS_BaseCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectRemoved,const FGameplayTagContainer& , TagContainer);
+
 class UGameplayAbility;
 class UGameplayEffect;
 class UAbilitySystemComponent;
@@ -45,6 +47,9 @@ public:
 	
 	FOnDeath OnDeath;
 	FOnDamageSignature OnDamageSignature;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGameplayEffectRemoved OnGameplayEffectRemoved;
 	
 	void SetCharacterClass(ECharacterClass InCharacterClass) {CharacterClass = InCharacterClass;}
 

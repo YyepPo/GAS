@@ -9,7 +9,6 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FDeactivatePassiveAbility, const FGameplayTa
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquipped, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*Status*/, const FGameplayTag& /*Slot*/, const FGameplayTag& /*PrevSlot*/);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAS_API UGAS_AbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -75,5 +74,4 @@ public:
 	FAbilitiesGiven AbilitiesGivenEvent;
 	FAbilityEquipped AbilityEquippedEvent;
 	FForEachAbility ForeachAbility;
-
 };

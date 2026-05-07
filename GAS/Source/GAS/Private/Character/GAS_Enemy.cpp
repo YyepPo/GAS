@@ -181,6 +181,14 @@ void AGAS_Enemy::OnActiveGameplayEffectAdded(UAbilitySystemComponent* ASC, const
 
 void AGAS_Enemy::OnAnyGameplayEffectRemovedEvent(const FActiveGameplayEffect& Effect)
 {
+	FGameplayTagContainer AssetTags;
+	Effect.Spec.GetAllAssetTags(AssetTags);
+	for (const FGameplayTag& Tag : AssetTags)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Removed Effect Asset Tag: %s"), *Tag.ToString());
+	}
+	
+	OnGameplayEffectRemoved.Broadcast(AssetTags);
 }
 
 void AGAS_Enemy::OnHitStackChanged(FActiveGameplayEffectHandle Handle, int32 NewCount, int32 OldCount)

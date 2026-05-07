@@ -171,41 +171,40 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 				UGAS_FunctionLibrary::SendRegenEvent(Props.SourceASC);
 			}
 		}
+		// Only play hit marker animation for the player
 		if (Props.SourceAvatarActor)
 		{
 			if (Props.SourceAvatarActor->Implements<UCharacterInterface>())
 			{
 				ICharacterInterface::Execute_ShowHitMarker(Props.SourceAvatarActor);
-
-				DisplayDamageNumberText(Props, LocalIncomingDamage);
 			}
 		}
+
+		DisplayDamageNumberText(Props, LocalIncomingDamage);
 	}	
 }
 
 void UGAS_AttributeSetBase::DisplayDamageNumberText(const FEffectProperties& Props,float IncomingDamageAmount)
-{
+{	
 	if (Props.SourceCharacter == nullptr || Props.TargetCharacter == nullptr)
 	{
 		return;
 	}
 
-	//Check if the attacker is not dealing damage to himself
-	if (Props.SourceCharacter == Props.TargetCharacter)
+	AGASPlayerController* GAS_PlayerController = nullptr;
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		return;
-	}
-	
-	AGASPlayerController* GAS_PlayerController = Cast<AGASPlayerController>(Props.SourceCharacter->GetController());
-	if (GAS_PlayerController == nullptr)
-	{
-		return;
+		if (AGASPlayerController* PC = Cast<AGASPlayerController>(It->Get()))
+		{
+			GAS_PlayerController = PC;
+			break;
+		}
 	}
 
-	GAS_PlayerController->DisplayDamageText(IncomingDamageAmount,Props.TargetCharacter->GetActorLocation());
+	if (GAS_PlayerController == nullptr) return;
 
-	UE_LOG(LogTemp,Warning,TEXT("Local damagaaaaae: %f"),IncomingDamageAmount);
-
+	GAS_PlayerController->DisplayDamageText(IncomingDamageAmount, Props.TargetCharacter->GetActorLocation());
 }
 
 void UGAS_AttributeSetBase::SendXPEvent(const FEffectProperties& Props)

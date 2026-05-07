@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameplayEffect.h"
 #include "AbilityComponent/GAS_AbilitySystemComponent.h"
+#include "AbilityComponent/GAS_FunctionLibrary.h"
 
 // Sets default values
 AGAS_BaseCharacter::AGAS_BaseCharacter()
@@ -144,15 +145,23 @@ void AGAS_BaseCharacter::InitAbilityInfo()
 
 void AGAS_BaseCharacter::AddCharacterAbilities()
 {
-	UGAS_AbilitySystemComponent* AuraASC = CastChecked<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
+	UGAS_AbilitySystemComponent* GAS_ASC = CastChecked<UGAS_AbilitySystemComponent>(AbilitySystemComponent);
 	if (HasAuthority() == false)
 	{
 		return;
 	}
 	
-	if (AuraASC)
+	if (GAS_ASC)
 	{
-		AuraASC->AddCharacterAbilities(StartupAbilities);
+		GAS_ASC->AddCharacterAbilities(StartupAbilities);
+
+		// Add and activate passive abilities
+		UCharacterClassInfo* ClassInfo = UGAS_FunctionLibrary::GetCharacterClassInfo(this);
+		if (ClassInfo)
+		{
+			FCharacterClassDefaultInfo Info = ClassInfo->GetClassDefaultInfo(CharacterClass);
+			GAS_ASC->AddPassiveAbilities(Info.PassiveAbilities);
+		}
 	}
 }
 
