@@ -17,40 +17,45 @@ class GAS_API UGAS_AbilityEnhancedInput : public UEnhancedInputComponent
 
 public:
 
-	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
-	void BindAbilityAction(const UAbilityInputInfo* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc);
+	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType, typename ConfirmFuncType,typename CancelFuncType>
+	void BindAbilityAction(const UAbilityInputInfo* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc,ConfirmFuncType,CancelFuncType);
 	
 };
 
-template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType>
+template <class UserClass, typename PressedFuncType, typename ReleasedFuncType, typename HeldFuncType, typename ConfirmFuncType,typename CancelFuncType>
 void UGAS_AbilityEnhancedInput::BindAbilityAction(const UAbilityInputInfo* InputConfig, UserClass* Object,
-	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc)
+	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, HeldFuncType HeldFunc,ConfirmFuncType ConfirmFunc,CancelFuncType CancelFunc)
 {
 	check(InputConfig);
 
+	if (InputConfig->ConfirmAction && ConfirmFunc != nullptr)
+	{
+		BindAction(InputConfig->ConfirmAction, ETriggerEvent::Started, Object, ConfirmFunc);
+	}
 
-	// Add this
-	UE_LOG(LogTemp, Warning, TEXT("bbbbbbb AbilityInputList count: %d"), InputConfig->AbilityInputList.Num());
-
+	if (InputConfig->CancelAction && CancelFunc != nullptr)
+	{
+		BindAction(InputConfig->CancelAction, ETriggerEvent::Started, Object, CancelFunc);
+	}
+	
 	for (FAbilityInputStruct Input : InputConfig->AbilityInputList)
 	{
-		// Add this
-		UE_LOG(LogTemp, Warning, TEXT("Checking Input - Action: %s | Tag: %s"),
-			Input.InputAction ? *Input.InputAction->GetName() : TEXT("NULL"),
-			*Input.AbilityInputTag.ToString());
-
 		if (Input.InputAction != nullptr && Input.AbilityInputTag.IsValid())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("bbbbbbb Binding action: %s"), *Input.InputAction->GetName());
-            
 			if (PressedFunc != nullptr)
 			{
 				BindAction(Input.InputAction, ETriggerEvent::Started, Object, PressedFunc, Input.AbilityInputTag);
 			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("bbbbbbb SKIPPED - InputAction is null or Tag is invalid"));
+
+			if (ReleasedFunc != nullptr)
+			{
+				BindAction(Input.InputAction,ETriggerEvent::Completed,Object, ReleasedFunc,Input.AbilityInputTag);
+			}
+
+			if (HeldFunc != nullptr)
+			{
+				BindAction(Input.InputAction,ETriggerEvent::Ongoing,Object, HeldFunc, Input.AbilityInputTag);
+			}
 		}
 	}
 	

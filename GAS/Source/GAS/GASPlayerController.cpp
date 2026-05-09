@@ -79,7 +79,11 @@ void AGASPlayerController::SetupInputComponent()
 
 	if(UGAS_AbilityEnhancedInput* GASInputComp = Cast<UGAS_AbilityEnhancedInput>(InputComponent))
 	{
-		GASInputComp->BindAbilityAction(InputConfig,this,&AGASPlayerController::AbilityInputPressed,&AGASPlayerController::AbilityInputReleased,&AGASPlayerController::AbilityInputHeld);
+		GASInputComp->BindAbilityAction(InputConfig,this,&AGASPlayerController::AbilityInputPressed,
+			&AGASPlayerController::AbilityInputReleased,
+			&AGASPlayerController::AbilityInputHeld,
+			&AGASPlayerController::AbilityInputConfirm,
+			&AGASPlayerController::AbilityInputCancel);
 	}
 
 }
@@ -103,15 +107,35 @@ void AGASPlayerController::AbilityInputPressed(const FGameplayTag Tag)
 {
 	check(AuroraAbilitySystemComponent);
 
-	AuroraAbilitySystemComponent->ActivateAbilityByTag(Tag);
+	AuroraAbilitySystemComponent->OnAbilityInputPressed(Tag);
 }
 
 void AGASPlayerController::AbilityInputReleased(const FGameplayTag Tag)
 {
+	check(AuroraAbilitySystemComponent);
+
+	AuroraAbilitySystemComponent->OnAbilityInputReleased(Tag);
 }
 
 void AGASPlayerController::AbilityInputHeld(const FGameplayTag Tag)
 {
+	check(AuroraAbilitySystemComponent);
+
+	AuroraAbilitySystemComponent->OnAbilityInputHeld(Tag);
+}
+
+void AGASPlayerController::AbilityInputConfirm()
+{
+	check(AuroraAbilitySystemComponent);
+
+	AuroraAbilitySystemComponent->OnAbilityInputConfirm();
+}
+
+void AGASPlayerController::AbilityInputCancel()
+{
+	check(AuroraAbilitySystemComponent);
+
+	AuroraAbilitySystemComponent->OnAbilityInputCancel();
 }
 
 void AGASPlayerController::PerformEnemyTrace()

@@ -119,14 +119,23 @@ void UGAS_AbilitySystemComponent::OnAbilityInputPressed(FGameplayTag Tag)
 	
 	ABILITYLIST_SCOPE_LOCK();
 
-	for (FGameplayAbilitySpec AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive() == false)
 		{
 			AbilitySpecInputPressed(AbilitySpec);
-			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed,
-				AbilitySpec.Handle,
-				AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+
+			if (AbilitySpec.IsActive())
+			{
+				InvokeReplicatedEvent(
+					EAbilityGenericReplicatedEvent::InputPressed,
+					AbilitySpec.Handle,
+					AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			}
+			else
+			{
+				TryActivateAbility(AbilitySpec.Handle);
+			}
 		}
 	}
 }
@@ -139,10 +148,17 @@ void UGAS_AbilitySystemComponent::OnAbilityInputReleased(FGameplayTag Tag)
 	
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && AbilitySpec.IsActive())
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag)	)
 		{
 			AbilitySpecInputReleased(AbilitySpec);
-			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+
+			if (AbilitySpec.IsActive())
+			{
+				InvokeReplicatedEvent(
+					EAbilityGenericReplicatedEvent::InputReleased,
+					AbilitySpec.Handle,
+					AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			}
 		}
 	}
 }
@@ -157,8 +173,21 @@ void UGAS_AbilitySystemComponent::OnAbilityInputHeld(FGameplayTag Tag)
 	{
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Tag) && !AbilitySpec.IsActive())
 		{
-			AbilitySpecInputReleased(AbilitySpec);
-			TryActivateAbility(AbilitySpec.Handle);
+			if (!AbilitySpec.IsActive())
+			{
+				// Just activate — don't call AbilitySpecInputPressed here,
+				// that would poke WaitInputRelease prematurely
+				TryActivateAbility(AbilitySpec.Handle);
+			}
+			else
+			{
+				// Ability is running — notify it that input is still held
+				// (useful for tick-aware abilities, charging, etc.)
+				InvokeReplicatedEvent(
+					EAbilityGenericReplicatedEvent::InputPressed,
+					AbilitySpec.Handle,
+					AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			}
 		}
 	}
 }
@@ -188,6 +217,16 @@ void UGAS_AbilitySystemComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 			}
 		}
 	}
+}
+
+void UGAS_AbilitySystemComponent::OnAbilityInputConfirm()
+{
+	LocalInputConfirm();
+}
+
+void UGAS_AbilitySystemComponent::OnAbilityInputCancel()
+{
+	LocalInputCancel();
 }
 
 void UGAS_AbilitySystemComponent::SpendAttributePoint(const FGameplayTag& AttributeTag)

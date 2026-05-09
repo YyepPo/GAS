@@ -75,6 +75,10 @@ private:
 	void AbilityInputReleased(const FGameplayTag Tag);
 	UFUNCTION()
 	void AbilityInputHeld(const FGameplayTag Tag);
+	UFUNCTION()
+	void AbilityInputConfirm();
+	UFUNCTION()
+	void AbilityInputCancel();
 
 	///
 	// Detection Trace

@@ -31,4 +31,10 @@ class GAS_API UAbilityInputInfo : public UDataAsset
 
 	UPROPERTY(EditAnywhere)
 	TArray<FAbilityInputStruct> AbilityInputList;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UInputAction> ConfirmAction;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UInputAction> CancelAction;
 };

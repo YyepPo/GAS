@@ -59,6 +59,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ActivateAbilityByTag(FGameplayTag AbilityTag);
 
+	void OnAbilityInputConfirm();
+	void OnAbilityInputCancel();
+	
 	UFUNCTION(BlueprintCallable)
 	void SpendAttributePoint(const FGameplayTag& AttributeTag);
 	
