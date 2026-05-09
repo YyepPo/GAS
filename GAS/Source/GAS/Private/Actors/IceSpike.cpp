@@ -53,4 +53,3 @@ void AIceSpike::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Othe
 		Destroy();
 	}
 }
-
