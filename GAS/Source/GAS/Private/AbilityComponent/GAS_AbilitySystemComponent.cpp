@@ -10,7 +10,7 @@ UGAS_AbilitySystemComponent::UGAS_AbilitySystemComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 }
 
@@ -246,6 +246,31 @@ void UGAS_AbilitySystemComponent::SpendAttributePoint(const FGameplayTag& Attrib
 	}
 	
 	
+}
+
+void UGAS_AbilitySystemComponent::PrintActivableAbilities()
+{
+	const TArray<FGameplayAbilitySpec>& AbilitySpecs = GetActivatableAbilities();
+
+	UE_LOG(LogTemp, Log, TEXT("=== Activatable Abilities (%d total) ==="), AbilitySpecs.Num());
+
+	for (const FGameplayAbilitySpec& Spec : AbilitySpecs)
+	{
+		if (!Spec.Ability)
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Log, TEXT(
+			"[Handle: %s] Class: %s | Level: %d | InputID: %d | Active: %s | Blocked: %s"),
+			*Spec.Handle.ToString(),
+			*Spec.Ability->GetClass()->GetName(),
+			Spec.Level,
+			Spec.InputID,
+			Spec.IsActive() ? TEXT("YES") : TEXT("NO"),
+			AreAbilityTagsBlocked(Spec.Ability->AbilityTags) ? TEXT("YES") : TEXT("NO")
+		);
+	}
 }
 
 FGameplayTag UGAS_AbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)

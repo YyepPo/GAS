@@ -24,4 +24,5 @@ void UGAS_PassiveAbility::ReceiveDeactivate(const FGameplayTag& AbilityTag)
 	{
 		EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 	}
+	
 }
