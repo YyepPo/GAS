@@ -82,6 +82,7 @@ protected:
 	virtual void ApplyDefaultAttributes() const;
 	void ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> AttributeClass,float Level) const;
 	void AddCharacterAbilities();
+	void RemoveActiveGameplayEffects();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat|Montage|Stun")
 	UAnimMontage* StunMontage;

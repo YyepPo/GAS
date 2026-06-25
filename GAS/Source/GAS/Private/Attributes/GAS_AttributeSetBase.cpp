@@ -132,6 +132,8 @@ void UGAS_AttributeSetBase::HandleIncomingDamage(const FEffectProperties& Props)
 	{
 		const float NewHealth = GetHealth() - LocalIncomingDamage;
 		SetHealth(FMath::Clamp(NewHealth,0.f,GetMaxHealth()));
+
+		UE_LOG(LogTemp,Warning,TEXT("AttributeSetBase: HandleIncoming Damage: TargetCharacter: %s , Owning Character: %s"),*Props.TargetCharacter->GetActorNameOrLabel(),*Props.SourceCharacter->GetActorNameOrLabel());
 		
 		// Handle death & increase xp
 		const bool bIsDead = NewHealth <= 0.f;

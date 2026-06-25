@@ -83,16 +83,7 @@ ECharacterClass AGAS_BaseCharacter::GetCharacterClass_Implementation()
 
 void AGAS_BaseCharacter::Die(const FVector& DeathImpulse)
 {
-	// Remove active gameplay effects such as posion
-	if (AbilitySystemComponent)
-	{
-		const FActiveGameplayEffectsContainer& ActiveEffects =	AbilitySystemComponent->GetActiveGameplayEffects();
-		const TArray<FActiveGameplayEffectHandle> ActiveGameplayEffectHandles = ActiveEffects.GetAllActiveEffectHandles();
-		for (const FActiveGameplayEffectHandle& ActiveGameplayEffectHandle : ActiveGameplayEffectHandles)
-		{
-			AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveGameplayEffectHandle);
-		}
-	}
+	RemoveActiveGameplayEffects();
 	
 	if (DeathSound)
 	{
@@ -172,6 +163,19 @@ void AGAS_BaseCharacter::AddCharacterAbilities()
 		{
 			FCharacterClassDefaultInfo Info = ClassInfo->GetClassDefaultInfo(CharacterClass);
 			GAS_ASC->AddPassiveAbilities(Info.PassiveAbilities);
+		}
+	}
+}
+
+void AGAS_BaseCharacter::RemoveActiveGameplayEffects()
+{
+	if (AbilitySystemComponent)
+	{
+		const FActiveGameplayEffectsContainer& ActiveEffects =	AbilitySystemComponent->GetActiveGameplayEffects();
+		const TArray<FActiveGameplayEffectHandle> ActiveGameplayEffectHandles = ActiveEffects.GetAllActiveEffectHandles();
+		for (const FActiveGameplayEffectHandle& ActiveGameplayEffectHandle : ActiveGameplayEffectHandles)
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveGameplayEffectHandle);
 		}
 	}
 }
