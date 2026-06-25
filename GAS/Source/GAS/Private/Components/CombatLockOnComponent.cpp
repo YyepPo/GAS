@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Interface/CombatInterface.h"
+#include "Interface/LockInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
@@ -58,24 +59,27 @@ void UCombatLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		bIsRestoringFromLock = false;
 
 		FVector TargetLocation = CurrentTarget->GetActorLocation();
-		TargetLocation.Z += 0.f;
-
-		FVector Direction = TargetLocation - GetOwner()->GetActorLocation();
-		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-
-		// Smooth interpolation
-		FRotator CurrentRot = CachedSpringArm->GetComponentRotation();
-		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRotation, DeltaTime, SpringRotateInterpSpeed);
-		CachedSpringArm->SetWorldRotation(NewRot);
+		if (CurrentTarget->Implements<ULockInterface>())
+		{
+			TargetLocation = ILockInterface::Execute_GetLockOnLocation(CurrentTarget);
+		}
 
 		FVector cl = CachedSpringArm->GetRelativeLocation();
-		FVector nw = FMath::VInterpTo(cl, SpringArmOffsetOnLock, DeltaTime,SpringLocationInterpSpeed);
+		FVector nw = FMath::VInterpTo(cl, SpringArmOffsetOnLock, DeltaTime, SpringLocationInterpSpeed);
 		CachedSpringArm->SetRelativeLocation(nw);
-		
-		// Rotate player mesh towards the target
+
+		FVector SpringPivotWorld = CachedSpringArm->GetComponentLocation();
+		FVector Direction = TargetLocation - SpringPivotWorld;
+		FRotator LookAtRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+
+		FRotator CurrentRot = CachedSpringArm->GetComponentRotation();
+		FRotator NewRot = FMath::RInterpTo(CurrentRot, LookAtRotation + RotationOffset, DeltaTime, SpringRotateInterpSpeed);
+		CachedSpringArm->SetWorldRotation(NewRot);
+
+		// Rotate player mesh towards the target (uses LookAtRotation from pivot, feels more natural too)
 		FRotator CurrentRotation = GetOwner()->GetActorRotation();
 		FRotator TargetRot = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaTime, MeshRotateInterSpeed);
-		GetOwner()->SetActorRotation(FRotator(GetOwner()->GetActorRotation().Pitch,TargetRot.Yaw,GetOwner()->GetActorRotation().Roll));
+		GetOwner()->SetActorRotation(FRotator(GetOwner()->GetActorRotation().Pitch, TargetRot.Yaw, GetOwner()->GetActorRotation().Roll));
 	}
 	else if (bIsRestoringFromLock)
 	{

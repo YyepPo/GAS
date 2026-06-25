@@ -114,7 +114,7 @@ private:
 	TArray<AActor*> LockableTargets;	
 	
 	/* Current target that we are locked in **/
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly,meta = (AllowPrivateAccess = "true"),Category = "Target")
 	AActor* CurrentTarget;
 	
 	/* Cached camera component of the player. Used as the start point of detection line trace **/
@@ -166,7 +166,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FVector SpringArmOffsetOnLock;
+	UPROPERTY(EditAnywhere)
+	FRotator RotationOffset;
 
+	
 	UPROPERTY(EditAnywhere)
 	float SpringRotateInterpSpeed = 10.f;
 	UPROPERTY(EditAnywhere)
